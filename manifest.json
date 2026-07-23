@@ -1,0 +1,70 @@
+{
+  "manifest_version": 3,
+  "name": "Zalicz Gminy - Komoot",
+  "version": "0.0.1",
+  "description": "Wyświetlaj zaliczone gminy na mapie Komoot",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.komoot.com/*",
+    "*://*.komoot.de/*",
+    "*://*.komoot.es/*",
+    "*://*.komoot.fr/*",
+    "*://*.komoot.it/*",
+    "*://*.komoot.nl/*",
+    "https://zaliczgmine.pl/*"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon16.png"
+    },
+    "default_title": "Zalicz Gminy"
+  },
+  "icons": {
+    "16": "assets/icons/icon16.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.komoot.com/*",
+        "*://*.komoot.de/*",
+        "*://*.komoot.es/*",
+        "*://*.komoot.fr/*",
+        "*://*.komoot.it/*",
+        "*://*.komoot.nl/*"
+      ],
+      "js": [
+        "messages.js",
+        "bridge.js"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "matches": [
+        "*://*.komoot.com/*",
+        "*://*.komoot.de/*",
+        "*://*.komoot.es/*",
+        "*://*.komoot.fr/*",
+        "*://*.komoot.it/*",
+        "*://*.komoot.nl/*"
+      ],
+      "resources": [
+        "messages.js",
+        "config.js",
+        "modules/bridge-client.js",
+        "modules/map-finder.js",
+        "modules/communes.js",
+        "modules/layers.js",
+        "modules/gpx.js",
+        "app.js"
+      ]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

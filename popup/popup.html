@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zalicz Gminy - Komoot</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      width: 280px;
+      min-height: 200px;
+      overflow: none;
+    }
+
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+
+    .stats {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 7px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .stats-number {
+      font-size: 32px;
+      font-weight: bold;
+      color: #2f9e44;
+    }
+
+    .stats-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .settings {
+      margin-top: 10px;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .settings label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .settings-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .settings input {
+      min-width: 0;
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #d9dee3;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .settings button {
+      width: auto;
+      padding: 10px 12px;
+      white-space: nowrap;
+    }
+
+    .settings-row .btn {
+      margin-top: 0;
+    }
+
+    .settings-hint {
+      margin-top: 7px;
+      font-size: 11px;
+      color: #777;
+      line-height: 1.35;
+    }
+
+    .file-name {
+      min-width: 0;
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #d9dee3;
+      border-radius: 8px;
+      background: white;
+      color: #555;
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .gpx-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .gpx-actions .btn {
+      width: 100%;
+      padding: 10px;
+    }
+
+    .gpx-list {
+      margin-top: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .gpx-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      background: white;
+      border: 1px solid #e4e7eb;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #444;
+    }
+
+    .gpx-item-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .gpx-item-remove {
+      width: auto;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #51cf66 0%, #2f9e44 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(47, 158, 68, 0.4);
+    }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #666;
+      margin-top: 10px;
+    }
+
+    .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ff6b6b 0%, #e03131 100%);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(224, 49, 49, 0.4);
+    }
+
+    .status {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .status.info {
+      background: #e7f3ff;
+      color: #004085;
+      border: 1px solid #b8daff;
+    }
+
+    .map-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 15px;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    .map-status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .map-status-dot.connected {
+      background: #51cf66;
+    }
+
+    .map-status-dot.disconnected {
+      background: #ff6b6b;
+    }
+
+    .info-text {
+      font-size: 12px;
+      color: #888;
+      text-align: center;
+      margin-top: 15px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="status" class="status" style="display: none;"></div>
+
+    <div class="stats">
+      <div class="stats-number" id="communesCount">-</div>
+      <div class="stats-label">Zaliczonych gmin</div>
+    </div>
+
+    <div class="settings">
+      <label for="userIdInput">ID użytkownika ZaliczGmine.pl</label>
+      <div class="settings-row">
+        <input
+          id="userIdInput"
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          placeholder="np. 5673"
+        >
+        <button class="btn btn-primary" id="saveUserIdBtn">Zapisz</button>
+      </div>
+      <div class="settings-hint">
+        ID to liczba po <strong>/users/view/</strong> w adresie profilu.
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="toggleBtn">
+      🔄 Przełącz widoczność gmin
+    </button>
+
+    <div class="map-status">
+      <div class="map-status-dot" id="mapStatusDot"></div>
+      <span id="mapStatusText">Sprawdzanie...</span>
+    </div>
+
+    <div class="settings">
+      <label for="gpxFileInput">Własny plik GPX</label>
+
+      <input
+        id="gpxFileInput"
+        type="file"
+        accept=".gpx,application/gpx+xml,application/xml,text/xml"
+        hidden
+      >
+
+      <div class="settings-row">
+        <div class="file-name" id="gpxFileName">Brak pliku</div>
+        <button class="btn btn-secondary" id="chooseGpxBtn">Wybierz</button>
+      </div>
+
+      <div class="gpx-actions">
+        <button class="btn btn-primary" id="importGpxBtn">Dodaj</button>
+        <button class="btn btn-danger" id="removeAllGpxBtn">
+          Usuń wszystkie
+        </button>
+      </div>
+
+      <div class="gpx-list" id="gpxList"></div>
+
+      <div class="settings-hint" id="gpxStatusText">
+        GPX będzie widoczny jako niebieska linia na mapie.
+      </div>
+    </div>
+
+    <div class="info-text">
+      Otwórz mapę na stronie Komoot,<br>
+      aby zobaczyć granice gmin.
+    </div>
+  </div>
+
+  <script src="../messages.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
