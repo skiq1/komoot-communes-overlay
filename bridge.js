@@ -12,18 +12,23 @@
     'modules/gpx.js',
     'app.js'
   ];
+  const { isSupportedPage } = globalThis.ZaliczGminySites;
   let scriptsLoaded = false;
   let scriptsLoading = null;
   let lastPath = location.pathname;
 
-  function getPathWithoutLocale() {
-    return location.pathname.replace(/^\/[a-z]{2}(?:-[a-z]{2})?(?=\/)/i, '');
-  }
+  // function getPathWithoutLocale() {
+  //   return location.pathname.replace(/^\/[a-z]{2}(?:-[a-z]{2})?(?=\/)/i, '');
+  // }
+
+  // function isSupportedRoute() {
+  //   const path = getPathWithoutLocale();
+  //   return /^\/tour\/[^/]+\/edit(?:\/|$)/.test(path) ||
+  //     /^\/plan(?:\/|$)/.test(path);
+  // }
 
   function isSupportedRoute() {
-    const path = getPathWithoutLocale();
-    return /^\/tour\/[^/]+\/edit(?:\/|$)/.test(path) ||
-      /^\/plan(?:\/|$)/.test(path);
+    return isSupportedPage(window.location)
   }
 
   // get communes & visited communes using background.js as a bridge, because blockade cross-origin requests

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Zalicz Gminy - Komoot",
+  "name": "Zalicz Gminy - overlay",
   "version": "0.0.1",
-  "description": "Wyświetlaj zaliczone gminy na mapie Komoot",
+  "description": "Wyswietlaj zaliczone gminy na mapach planerów tras.",
   "permissions": [
     "storage"
   ],
@@ -13,7 +13,8 @@
     "*://*.komoot.fr/*",
     "*://*.komoot.it/*",
     "*://*.komoot.nl/*",
-    "https://zaliczgmine.pl/*"
+    "*://veloplanner.com/*",
+    "*://zaliczgmine.pl/*"
   ],
   "action": {
     "default_popup": "popup/popup.html",
@@ -33,10 +34,12 @@
         "*://*.komoot.es/*",
         "*://*.komoot.fr/*",
         "*://*.komoot.it/*",
-        "*://*.komoot.nl/*"
+        "*://*.komoot.nl/*",
+        "*://veloplanner.com/*"
       ],
       "js": [
         "messages.js",
+        "modules/sites.js",
         "bridge.js"
       ],
       "run_at": "document_end"
@@ -50,7 +53,8 @@
         "*://*.komoot.es/*",
         "*://*.komoot.fr/*",
         "*://*.komoot.it/*",
-        "*://*.komoot.nl/*"
+        "*://*.komoot.nl/*",
+        "*://veloplanner.com/*"
       ],
       "resources": [
         "messages.js",
