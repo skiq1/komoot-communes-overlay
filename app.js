@@ -32,6 +32,7 @@
       try {
         await reloadUserCommunes(data.userId);
         refreshCommunesStyles();
+        app.modules.plannedRoute.scheduleRefresh();
 
         return {
           success: true,
@@ -66,6 +67,7 @@
         userId: app.state.userId,
         userCommunesSource: app.state.userCommunesSource,
         gpxTracks: getTracksSummary(),
+        routeCommunesCount: app.state.routeCommuneIds.size,
         totalLoaded: app.state.polygons ? app.state.polygons.length : 0
       };
     }
@@ -122,6 +124,8 @@
       addToggleButton();
       setupStyleChangeObserver();
       setupZoomObserver();
+      app.modules.routeDiagnostics.start();
+      app.modules.plannedRoute.start();
       try {
         await loadStoredGpx();
       } catch (error) {

@@ -7,12 +7,15 @@
       unvisitedOutline: 'zalicz-gminy-communes-outline',
       visitedFill: 'zalicz-gminy-visited',
       visitedOutline: 'zalicz-gminy-visited-outline',
+      routeCommunesFill: 'zalicz-gminy-route-communes',
+      routeCommunesOutline: 'zalicz-gminy-route-communes-outline',
       gpxCasing: 'zalicz-gminy-gpx-casing',
       gpxLine: 'zalicz-gminy-gpx-line'
     },
     sourceIds: {
       unvisited: 'zalicz-gminy-unvisited-source',
       visited: 'zalicz-gminy-visited-source',
+      routeCommunes: 'zalicz-gminy-route-communes-source',
       gpx: 'zalicz-gminy-gpx-source'
     },
     zoom: {
@@ -43,6 +46,15 @@
         'line-width': 2,
         'line-opacity': 0.2
       },
+      routeCommunesFill: {
+        'fill-color': '#228be6',
+        'fill-opacity': 0.32
+      },
+      routeCommunesOutline: {
+        'line-color': '#1864ab',
+        'line-width': 2.5,
+        'line-opacity': 0.95
+      },
       gpxCasing: {
         'line-color': '#ffffff',
         'line-width': 7,
@@ -63,7 +75,8 @@
     polygonsKey: null,
     userId: null,
     userCommunesSource: 'none',
-    userCommunes: new Set()
+    userCommunes: new Set(),
+    routeCommuneIds: new Set()
   };
 
   global.ZaliczGminy = {

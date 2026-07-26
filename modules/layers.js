@@ -142,6 +142,7 @@
     } else {
       addCommunesLayers();
     }
+    app.modules.plannedRoute.scheduleRefresh();
   }
 
   function toggleLayers(visible, refreshVisibleLayers = true) {
@@ -156,6 +157,7 @@
 
     updateToggleButton();
     updateOutlineVisibility();
+    app.modules.plannedRoute.setVisible(visible);
 
     if (visible && refreshVisibleLayers) {
       refreshCommunesForCurrentZoom();
@@ -240,6 +242,7 @@
       }
 
       app.modules.gpx.renderGpx();
+      app.modules.plannedRoute.scheduleRefresh();
     });
   }
 

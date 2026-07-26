@@ -10,6 +10,8 @@
     'modules/communes.js',
     'modules/layers.js',
     'modules/gpx.js',
+    'modules/route-diagnostics.js',
+    'modules/planned-route.js',
     'app.js'
   ];
   let scriptsLoaded = false;
