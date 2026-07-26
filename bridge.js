@@ -5,6 +5,7 @@
   const pageScripts = [
     'messages.js',
     'config.js',
+    'modules/sites.js',
     'modules/bridge-client.js',
     'modules/map-finder.js',
     'modules/communes.js',

@@ -187,7 +187,10 @@
   }
 
   function addToggleButton() {
-    const mapControls = document.querySelector('.maplibregl-ctrl-top-left, .mapboxgl-ctrl-top-left');
+    const site = globalThis.ZaliczGminySites.getCurrentSite(location);
+    const mapControls = site?.controlsContainer();
+
+    // const mapControls = document.querySelector('.maplibregl-ctrl-top-left, .mapboxgl-ctrl-top-left');
     if (!mapControls || document.getElementById('zalicz-gminy-toggle')) return;
 
     const buttonContainer = document.createElement('div');

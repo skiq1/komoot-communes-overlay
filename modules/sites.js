@@ -6,7 +6,8 @@
       matchesHost: host => host.includes('komoot.'),
       matchesRoute: path =>
           /^\/tour\/[^/]+\/edit(?:\/|$)/.test(path) ||
-          /^\/plan(?:\/|$)/.test(path)
+          /^\/plan(?:\/|$)/.test(path),
+      controlsContainer: () => document.querySelector('.maplibregl-ctrl-top-left')
     },
     {
       id: 'veloplanner',
@@ -15,7 +16,14 @@
       // https://veloplanner.com/pl/user-routes/168777/edit#map=6.65/53.938/19.628
       matchesRoute: path =>
         /^\/plan(?:\/|$)/.test(path) ||
-        /^\/user-routes\/\d+\/edit(?:\/|$)/.test(path)    }
+        /^\/user-routes\/\d+\/edit(?:\/|$)/.test(path),
+      controlsContainer: () => {
+        const parent = document.querySelector(
+          '.flex.flex-row.gap-3.items-end.relative'
+        );
+        return parent?.querySelector('.flex.flex-row.gap-3') || parent;
+      }
+    }
   ];
 
   function getCurrentSite() {
@@ -35,6 +43,7 @@
   }
 
   global.ZaliczGminySites = {
+    getCurrentSite,
     isSupportedPage
   };
 
