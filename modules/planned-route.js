@@ -6,6 +6,8 @@
   let watchedMap = null;
   let debounceId = null;
   let calculationId = 0;
+  const preparedCommunes = new WeakMap();
+  const CALCULATION_CHUNK_SIZE = 50;
 
   function featuresFromSource(source) {
     if (!source || typeof source !== 'object') return [];
@@ -122,6 +124,9 @@
   }
 
   function parseCommune(item) {
+    const cacheable = item !== null && typeof item === 'object';
+    if (cacheable && preparedCommunes.has(item)) return preparedCommunes.get(item);
+
     try {
       const rawRings = JSON.parse(item.c);
       const rings = rawRings.map(ring => ring.map(coordinate => [
@@ -129,29 +134,55 @@
         coordinate[0]
       ]));
       const points = rings.flat();
-      if (!points.length) return null;
-      return { item, rings, bounds: boundsOfPoints(points) };
+      const commune = points.length
+        ? { item, rings, bounds: boundsOfPoints(points) }
+        : null;
+      if (cacheable) preparedCommunes.set(item, commune);
+      return commune;
     } catch (error) {
+      if (cacheable) preparedCommunes.set(item, null);
       return null;
     }
   }
 
-  function findIntersectedCommunes(lines, polygons) {
+  function waitForIdleTime() {
+    return new Promise(resolve => {
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(resolve, { timeout: 100 });
+      } else {
+        window.setTimeout(resolve, 0);
+      }
+    });
+  }
+
+  async function findIntersectedCommunes(lines, polygons, id) {
     const preparedLines = lines.map(line => ({
       points: line,
       bounds: boundsOfPoints(line)
     }));
     const matches = [];
 
-    for (const item of polygons) {
-      const commune = parseCommune(item);
-      if (!commune) continue;
-      if (preparedLines.some(line =>
-        lineIntersectsPolygon(line.points, line.bounds, commune.rings, commune.bounds)
-      ) && !app.state.userCommunes.has(String(item.i))) {
-        matches.push(item);
+    // Oddaj przeglądarce czas na narysowanie właśnie załadowanej warstwy gmin.
+    await waitForIdleTime();
+
+    for (let start = 0; start < polygons.length; start += CALCULATION_CHUNK_SIZE) {
+      if (id !== calculationId) return null;
+
+      const end = Math.min(start + CALCULATION_CHUNK_SIZE, polygons.length);
+      for (let index = start; index < end; index++) {
+        const item = polygons[index];
+        const commune = parseCommune(item);
+        if (!commune) continue;
+        if (preparedLines.some(line =>
+          lineIntersectsPolygon(line.points, line.bounds, commune.rings, commune.bounds)
+        ) && !app.state.userCommunes.has(String(item.i))) {
+          matches.push(item);
+        }
       }
+
+      if (end < polygons.length) await waitForIdleTime();
     }
+
     return matches;
   }
 
@@ -210,14 +241,14 @@
     }
   }
 
-  function refresh() {
+  async function refresh() {
     const id = ++calculationId;
     const lines = getRouteLines();
     const polygons = app.state.polygons || [];
     const matches = lines.length && polygons.length
-      ? findIntersectedCommunes(lines, polygons)
+      ? await findIntersectedCommunes(lines, polygons, id)
       : [];
-    if (id !== calculationId) return;
+    if (id !== calculationId || !matches) return;
 
     app.state.routeCommuneIds = new Set(matches.map(item => String(item.i)));
     render(matches);
@@ -229,7 +260,13 @@
 
   function scheduleRefresh() {
     window.clearTimeout(debounceId);
-    debounceId = window.setTimeout(refresh, zoomConfig.debounceMs);
+    // Unieważnij także obliczenie, które już trwa.
+    calculationId++;
+    debounceId = window.setTimeout(() => {
+      refresh().catch(error => {
+        console.error('Zalicz Gminy: błąd analizy trasy:', error);
+      });
+    }, zoomConfig.debounceMs);
   }
 
   function setVisible(visible) {
