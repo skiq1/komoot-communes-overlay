@@ -6,64 +6,34 @@
   const { zoom: zoomConfig } = app.config;
   const { fetchResource, getStorage, setStorage } = app.modules.bridgeClient;
 
-  function extractUserCommunesFromHtml(html) {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    const links = doc.querySelectorAll('#user-communes-list a[href^="/communes/view/"]');
-    const communeIds = new Set();
-
-    for (const link of links) {
-      const match = link.getAttribute('href').match(/\/communes\/view\/(\d+)/);
-      if (match) communeIds.add(match[1]);
+  async function loadUserCommunesFromApi(userId) {
+    const params = new URLSearchParams({ user_id: userId, country: 'pl' });
+    const data = await fetchResource(`https://zaliczgmine.pl/api/usercommunes?${params}`);
+    if (data.status !== 'success' || !Array.isArray(data.items)) {
+      throw new Error(data.message || 'Nieprawidłowa odpowiedź z API');
     }
 
-    return communeIds;
-  }
-
-  async function loadUserCommunesFromProfile(userId) {
-    const url = `https://zaliczgmine.pl/users/view/${encodeURIComponent(userId)}`;
-    const html = await fetchResource(url, 'text');
-    const communeIds = extractUserCommunesFromHtml(html);
-
-    if (communeIds.size === 0) {
-      throw new Error('Nie znaleziono gmin na profilu użytkownika');
-    }
-
+    const communeIds = new Set(data.items.map(item => String(item.id)));
     app.state.userCommunes = communeIds;
-    app.state.userCommunesSource = 'profile';
+    app.state.userCommunesSource = 'api';
     app.state.userId = String(userId);
     setStorage({ communesCount: communeIds.size });
-
-    console.log(`Zalicz Gminy: załadowano ${communeIds.size} gmin z profilu użytkownika ${userId}`);
     return communeIds;
   }
 
   async function loadUserCommunes() {
     const storage = await getStorage(['zaliczGminyUserId']);
-    const userId = storage.zaliczGminyUserId ? String(storage.zaliczGminyUserId).trim() : '';
-
-    app.state.userCommunes.clear();
-    app.state.userId = userId || null;
-    app.state.userCommunesSource = 'none';
-    setStorage({ communesCount: 0 });
-
-    if (!userId) {
-      throw new Error('Nie ustawiono ID użytkownika ZaliczGmine.pl');
-    }
-
-    return loadUserCommunesFromProfile(userId);
+    return reloadUserCommunes(storage.zaliczGminyUserId);
   }
 
   async function reloadUserCommunes(userId) {
-    app.state.userCommunes.clear();
-    app.state.userId = userId ? String(userId).trim() : null;
-    app.state.userCommunesSource = 'none';
-    setStorage({ communesCount: 0 });
-
-    if (!app.state.userId) {
-      throw new Error('Nie ustawiono ID użytkownika ZaliczGmine.pl');
+    const normalizedId = userId ? String(userId).trim() : '';
+    // only numeric user ID
+    if (!/^\d+$/.test(normalizedId)) {
+      throw new Error('Nie ustawiono poprawnego ID użytkownika ZaliczGmine.pl');
     }
 
-    return loadUserCommunesFromProfile(app.state.userId);
+    return loadUserCommunesFromApi(normalizedId);
   }
 
   function getApiZoomForMapZoom(mapZoom) {
