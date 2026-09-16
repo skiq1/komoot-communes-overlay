@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const gpxList = document.getElementById('gpxList');
   const gpxStatusText = document.getElementById('gpxStatusText');
   const mapStatusDot = document.getElementById('mapStatusDot');
+  const plannerLinks = document.getElementById('plannerLinks');
   const mapStatusText = document.getElementById('mapStatusText');
   const statusDiv = document.getElementById('status');
 
@@ -281,25 +282,32 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  function updateVisibilityButton(visible) {
+    toggleBtn.textContent = visible ? 'Ukryj gminy' : 'Pokaż gminy';
+  }
+
   toggleBtn.addEventListener('click', function() {
     sendMessageToContentScript({ action: ACTION.TOGGLE_COMMUNES }, function(response) {
       if (response && response.success) {
+        updateVisibilityButton(response.visible);
         const visibleText = response.visible ? 'widoczne' : 'ukryte';
         showStatus(`Gminy są teraz ${visibleText}`, 'success');
       } else if (response && response.error) {
         showStatus(response.error, 'error');
       } else {
-        showStatus('Nie można połączyć się z mapą Komoot', 'error');
+        showStatus('Nie można połączyć się z mapą planera', 'error');
       }
     });
   });
 
   function checkMapStatus() {
     sendMessageToContentScript({ action: ACTION.GET_STATUS }, function(response) {
+      plannerLinks.hidden = Boolean(response && response.connected);
       if (response && response.connected) {
         mapStatusDot.classList.add('connected');
         mapStatusDot.classList.remove('disconnected');
         mapStatusText.textContent = 'Połączono z mapą';
+        updateVisibilityButton(response.visible);
 
         if (response.communesCount !== undefined) {
           communesCountEl.textContent = response.communesCount;

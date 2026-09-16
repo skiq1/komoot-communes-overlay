@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zalicz Gminy - Komoot</title>
+  <title>Zalicz Gminy — planery tras</title>
 
   <style>
     :root {
@@ -18,7 +18,7 @@
       --danger-soft: #fff0f0;
 
       --text: #20252a;
-      --text-muted: #747c84;
+      --text-muted: #626b73;
 
       --border: #e5e9ec;
       --surface: #ffffff;
@@ -34,7 +34,7 @@
     }
 
     body {
-      width: 300px;
+      width: 340px;
       min-height: 180px;
       margin: 0;
       overflow-x: hidden;
@@ -61,7 +61,7 @@
     }
 
     .container {
-      padding: 12px;
+      padding: 16px;
       background: var(--surface);
     }
 
@@ -127,10 +127,8 @@
 
     .stats-label {
       margin-top: 3px;
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.55px;
       color: var(--text-muted);
     }
 
@@ -166,10 +164,8 @@
     /* ---------- Sections ---------- */
 
     .section {
-      padding: 10px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--surface);
+      padding: 14px 0;
+      border-top: 1px solid var(--border);
     }
 
     .section + .section,
@@ -187,16 +183,14 @@
     }
 
     .section-title {
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
       color: #555e65;
     }
 
     .settings-hint {
       margin-top: 6px;
-      font-size: 10.5px;
+      font-size: 12px;
       line-height: 1.35;
       color: var(--text-muted);
     }
@@ -401,16 +395,52 @@
       color: #245b9d;
     }
 
-    /* ---------- Footer ---------- */
+    .map-connection {
+      display: grid;
+      gap: 3px;
+    }
 
-    .footer-note {
-      margin-top: 9px;
-      padding-top: 8px;
-      border-top: 1px solid var(--border);
-      text-align: center;
-      font-size: 10px;
-      line-height: 1.4;
-      color: #92989d;
+    .planner-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-left: 14px;
+      font-size: 11px;
+    }
+
+    .planner-links[hidden] {
+      display: none;
+    }
+
+    .planner-links a {
+      color: var(--brand-dark);
+      text-underline-offset: 3px;
+    }
+
+    .gpx-section > summary {
+      cursor: pointer;
+    }
+
+    .gpx-section[open] > summary {
+      margin-bottom: 10px;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--brand-dark);
+      outline-offset: 3px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -431,7 +461,7 @@
       </div>
     </header>
 
-    <div id="status" class="status" style="display: none;"></div>
+    <div id="status" role="status" aria-live="polite" class="status" style="display: none;"></div>
 
     <div class="summary">
       <div class="stats">
@@ -439,9 +469,16 @@
         <div class="stats-label">Zaliczonych gmin</div>
       </div>
 
-      <div class="map-status">
-        <div class="map-status-dot" id="mapStatusDot"></div>
-        <span id="mapStatusText">Sprawdzanie...</span>
+      <div class="map-connection">
+        <div class="map-status">
+          <div class="map-status-dot" id="mapStatusDot"></div>
+          <span id="mapStatusText">Sprawdzanie...</span>
+        </div>
+    <nav id="plannerLinks" class="planner-links" hidden aria-label="Obsługiwane planery tras">
+      <a href="https://www.komoot.com/plan" target="_blank" rel="noopener noreferrer">Komoot<span class="sr-only"> (nowa karta)</span></a>
+      <span aria-hidden="true">·</span>
+      <a href="https://veloplanner.com/pl/plan" target="_blank" rel="noopener noreferrer">VeloPlanner<span class="sr-only"> (nowa karta)</span></a>
+    </nav>
       </div>
     </div>
 
@@ -455,6 +492,7 @@
           id="userIdInput"
           type="text"
           placeholder="Nick lub ID użytkownika"
+          aria-describedby="userSearchHint"
           aria-label="Nick lub ID użytkownika"
         >
         <button
@@ -467,22 +505,20 @@
 
       <div id="userSearchResults" class="gpx-list" aria-live="polite"></div>
 
-      <div class="settings-hint">
-        Wpisz nick lub ID, wyszukaj i wybierz konto.
+      <div class="settings-hint" id="userSearchHint">
+        Wyszukaj i wybierz swoje konto z listy.
       </div>
     </div>
 
     <button
-      class="btn btn-primary btn-main"
+      class="btn btn-secondary btn-main"
       id="toggleBtn"
     >
-      ◉ Przełącz widoczność gmin
+      Widoczność gmin
     </button>
 
-    <div class="section">
-      <div class="section-header">
-        <div class="section-title">Trasy GPX</div>
-      </div>
+    <details class="section gpx-section">
+      <summary class="section-title">Trasy GPX</summary>
 
       <input
         id="gpxFileInput"
@@ -512,7 +548,7 @@
           class="btn btn-primary"
           id="importGpxBtn"
         >
-          + Dodaj trasę
+          Dodaj trasę
         </button>
 
         <button
@@ -534,11 +570,9 @@
       >
         Zaimportowane trasy pojawią się na mapie jako niebieskie linie.
       </div>
-    </div>
+    </details>
 
-    <div class="footer-note">
-      Otwórz mapę Komoot, aby wyświetlić granice zaliczonych gmin.
-    </div>
+
 
   </div>
 
