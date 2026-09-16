@@ -15,7 +15,15 @@
     app.state.userCommunes = communeIds;
     app.state.userCommunesSource = 'api';
     app.state.userId = String(userId);
-    setStorage({ communesCount: communeIds.size });
+    setStorage({ communesCount: data.count });
+    // console.log(data.count)
+    // console.log(communeIds.size)
+
+    // update only if name is stillthe same as selected account.
+    const storage = await getStorage(['zaliczGminyUserId']);
+    if (String(storage.zaliczGminyUserId) === String(userId) && data.user?.username) {
+      setStorage({ zaliczGminyUsername: data.user.username });
+    }
     return communeIds;
   }
 

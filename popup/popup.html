@@ -188,6 +188,14 @@
       color: #555e65;
     }
 
+    .selected-user {
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--brand-dark);
+      overflow-wrap: anywhere;
+    }
+
     .settings-hint {
       margin-top: 6px;
       font-size: 12px;
@@ -431,17 +439,6 @@
       outline: 2px solid var(--brand-dark);
       outline-offset: 3px;
     }
-
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-      white-space: nowrap;
-    }
   </style>
 </head>
 
@@ -475,9 +472,9 @@
           <span id="mapStatusText">Sprawdzanie...</span>
         </div>
     <nav id="plannerLinks" class="planner-links" hidden aria-label="Obsługiwane planery tras">
-      <a href="https://www.komoot.com/plan" target="_blank" rel="noopener noreferrer">Komoot<span class="sr-only"> (nowa karta)</span></a>
+      <a href="https://www.komoot.com/plan" target="_blank" rel="noopener noreferrer">Komoot</a>
       <span aria-hidden="true">·</span>
-      <a href="https://veloplanner.com/pl/plan" target="_blank" rel="noopener noreferrer">VeloPlanner<span class="sr-only"> (nowa karta)</span></a>
+      <a href="https://veloplanner.com/pl/plan" target="_blank" rel="noopener noreferrer">VeloPlanner</a>
     </nav>
       </div>
     </div>
@@ -486,6 +483,7 @@
       <div class="section-header">
         <div class="section-title">Konto ZaliczGmine.pl</div>
       </div>
+      <div id="selectedUser" class="selected-user" aria-live="polite">Nie wybrano konta</div>
 
       <div class="settings-row">
         <input

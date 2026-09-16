@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const api = globalThis.createZaliczGmineApi();
   const communesCountEl = document.getElementById('communesCount');
   const toggleBtn = document.getElementById('toggleBtn');
+  const selectedUserEl = document.getElementById('selectedUser');
   const userIdInput = document.getElementById('userIdInput');
   const saveUserIdBtn = document.getElementById('saveUserIdBtn');
   const gpxFileInput = document.getElementById('gpxFileInput');
@@ -20,18 +21,32 @@ document.addEventListener('DOMContentLoaded', function() {
   init();
 
   async function init() {
-    loadUserId();
+    loadSelectedUser();
     loadGpxInfo();
     checkMapStatus();
   }
 
-  function loadUserId() {
-    chrome.storage.local.get(['zaliczGminyUserId'], function(result) {
-      if (result.zaliczGminyUserId) {
-        userIdInput.value = result.zaliczGminyUserId;
-      }
+  function renderSelectedUser(userId, username) {
+    selectedUserEl.textContent = userId
+      ? `Wybrano: ${username || 'użytkownik o ID ' + userId} (ID: ${userId})`
+      : 'Nie wybrano konta';
+    selectedUserEl.title = userId ? `ID użytkownika: ${userId}` : '';
+  }
+
+  function loadSelectedUser() {
+    chrome.storage.local.get(['zaliczGminyUserId', 'zaliczGminyUsername'], function(result) {
+      renderSelectedUser(result.zaliczGminyUserId, result.zaliczGminyUsername);
     });
   }
+
+  function handleStorageChange(changes, areaName) {
+    if (areaName === 'local' && (changes.zaliczGminyUserId || changes.zaliczGminyUsername)) {
+      loadSelectedUser();
+    }
+  }
+
+  chrome.storage.onChanged.addListener(handleStorageChange);
+  window.addEventListener('unload', () => chrome.storage.onChanged.removeListener(handleStorageChange));
 
   function loadGpxInfo() {
     chrome.storage.local.get(['zaliczGminyGpx', 'zaliczGminyGpxList'], function(result) {
@@ -259,12 +274,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const userId = String(user.id);
     searchVersion++;
     userSearchResults.textContent = '';
-    userIdInput.value = userId;
-    chrome.storage.local.set({ zaliczGminyUserId: userId }, function() {
+    chrome.storage.local.set({ zaliczGminyUserId: userId, zaliczGminyUsername: user.username }, function() {
       if (chrome.runtime.lastError) {
         showStatus('Nie udało się zapisać użytkownika', 'error');
         return;
       }
+      renderSelectedUser(userId, user.username);
+      userIdInput.value = '';
       showStatus(`Zapisano konto ${user.username}`, 'success');
       sendMessageToContentScript({
         action: ACTION.RELOAD_COMMUNES,
@@ -311,9 +327,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (response.communesCount !== undefined) {
           communesCountEl.textContent = response.communesCount;
-        }
-        if (response.userId) {
-          userIdInput.value = response.userId;
         }
         if (Array.isArray(response.gpxTracks)) {
           getStoredGpxTracks(function(tracks) {
