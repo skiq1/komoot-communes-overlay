@@ -2,10 +2,10 @@
   'use strict';
 
   const MESSAGE = Object.freeze({
-    // bridge.js -> background.js
+    // content-script.js -> background.js
     FETCH: 'ZALICZ_GMINY_FETCH',
 
-    // strona <-> bridge.js
+    // strona <-> content-script.js
     FETCH_REQUEST: 'ZALICZ_GMINY_FETCH_REQUEST',
     FETCH_RESPONSE: 'ZALICZ_GMINY_FETCH_RESPONSE',
 
@@ -13,7 +13,7 @@
     STORAGE_SET: 'ZALICZ_GMINY_STORAGE_SET',
     STORAGE_RESPONSE: 'ZALICZ_GMINY_STORAGE_RESPONSE',
 
-    // popup.js <-> bridge.js <-> app.js
+    // popup.js <-> content-script.js <-> map-app.js
     COMMAND: 'ZALICZ_GMINY_COMMAND',
     COMMAND_RESPONSE: 'ZALICZ_GMINY_COMMAND_RESPONSE'
   });
@@ -27,7 +27,7 @@
     REMOVE_GPX: 'removeGpx'
   });
 
-  global.ZaliczGminyProtocol = Object.freeze({
+  global.ZaliczGminyMessageProtocol = Object.freeze({
     MESSAGE,
     ACTION
   });

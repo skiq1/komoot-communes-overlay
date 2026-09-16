@@ -1,9 +1,9 @@
 (function(app) {
   'use strict';
 
-  const { ACTION, MESSAGE } = globalThis.ZaliczGminyProtocol;
+  const { ACTION, MESSAGE } = globalThis.ZaliczGminyMessageProtocol;
   const { loadUserCommunes, reloadUserCommunes, fetchPolygons,
-          activatePolygons, getPolygonRequestForMap } = app.modules.communesApi;
+          activatePolygons, getPolygonRequestForMap } = app.modules.communesData;
   const { getTracksSummary, loadStoredGpx, removeGpx, renderGpx, setGpx } = app.modules.gpx;
   const { findMap } = app.modules.mapFinder;
   const {
@@ -16,7 +16,7 @@
     showNotification,
     toggleLayers,
     waitForStyleLoad
-  } = app.modules.layers;
+  } = app.modules.mapLayers;
 
   async function handleCommand(action, data = {}) {
     if (action === ACTION.TOGGLE_COMMUNES) {

@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const { ACTION } = globalThis.ZaliczGminyProtocol;
+  const { ACTION } = globalThis.ZaliczGminyMessageProtocol;
+  const api = globalThis.createZaliczGmineApi();
   const communesCountEl = document.getElementById('communesCount');
   const toggleBtn = document.getElementById('toggleBtn');
   const userIdInput = document.getElementById('userIdInput');
@@ -210,36 +211,75 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  saveUserIdBtn.addEventListener('click', function() {
-    const userId = userIdInput.value.trim();
+  const userSearchResults = document.getElementById('userSearchResults');
+  let searchVersion = 0;
 
-    if (userId && !/^\d+$/.test(userId)) {
-      showStatus('ID użytkownika musi być liczbą', 'error');
+  userIdInput.addEventListener('input', function() {
+    searchVersion++;
+    userSearchResults.textContent = '';
+  });
+  userIdInput.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') saveUserIdBtn.click();
+  });
+
+  saveUserIdBtn.addEventListener('click', async function() {
+    const query = userIdInput.value.trim();
+    const version = ++searchVersion;
+    userSearchResults.textContent = '';
+    if (!query) {
+      showStatus('Wpisz nick lub ID użytkownika', 'error');
       return;
     }
+    showStatus('Wyszukiwanie użytkowników…', 'info');
+    try {
+      const users = await api.searchUsers(query);
+      if (version !== searchVersion) return;
+      if (!users.length) {
+        showStatus('Nie znaleziono użytkowników', 'info');
+        return;
+      }
+      showStatus('Wybierz konto z listy', 'info');
+      for (const user of users) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn btn-secondary';
+        button.style.whiteSpace = 'normal';
+        button.textContent = `${user.username} (ID: ${user.id})`;
+        button.addEventListener('click', () => saveUser(user));
+        userSearchResults.appendChild(button);
+      }
+    } catch (error) {
+      if (version !== searchVersion) return;
+      showStatus(error.message, 'error');
+    }
+  });
 
+  function saveUser(user) {
+    const userId = String(user.id);
+    searchVersion++;
+    userSearchResults.textContent = '';
+    userIdInput.value = userId;
     chrome.storage.local.set({ zaliczGminyUserId: userId }, function() {
-      showStatus('Zapisano ID użytkownika', 'success');
-
+      if (chrome.runtime.lastError) {
+        showStatus('Nie udało się zapisać użytkownika', 'error');
+        return;
+      }
+      showStatus(`Zapisano konto ${user.username}`, 'success');
       sendMessageToContentScript({
         action: ACTION.RELOAD_COMMUNES,
-        data: { userId: userId }
+        data: { userId }
       }, function(response) {
         if (response?.success) {
           communesCountEl.textContent = response.communesCount;
           showStatus(`Załadowano ${response.communesCount} gmin`, 'success');
-          return;
+        } else if (response?.error) {
+          showStatus(response.error, 'error');
+        } else {
+          showStatus(`Zapisano konto ${user.username}. Otwórz mapę, aby załadować gminy.`, 'success');
         }
-
-        showStatus(
-          response?.error || 'Nie można połączyć się z mapą Komoot',
-          'error'
-        );
-        // loadCommunesCountFromStorage();
-
       });
     });
-  });
+  }
 
   toggleBtn.addEventListener('click', function() {
     sendMessageToContentScript({ action: ACTION.TOGGLE_COMMUNES }, function(response) {

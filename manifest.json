@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Zalicz Gminy - overlay",
+  "name": "ZaliczGmine.pl - overlay",
   "version": "0.0.1",
   "description": "Wyswietlaj zaliczone gminy na mapach planerów tras.",
   "permissions": [
@@ -38,9 +38,9 @@
         "*://veloplanner.com/*"
       ],
       "js": [
-        "messages.js",
+        "message-protocol.js",
         "modules/sites.js",
-        "bridge.js"
+        "content-script.js"
       ],
       "run_at": "document_end"
     }
@@ -57,15 +57,16 @@
         "*://veloplanner.com/*"
       ],
       "resources": [
-        "messages.js",
+        "message-protocol.js",
         "config.js",
         "modules/sites.js",
-        "modules/bridge-client.js",
+        "modules/extension-bridge.js",
+        "modules/zaliczgmine-api.js",
         "modules/map-finder.js",
-        "modules/communes.js",
-        "modules/layers.js",
+        "modules/communes-data.js",
+        "modules/map-layers.js",
         "modules/gpx.js",
-        "app.js"
+        "map-app.js"
       ]
     }
   ],

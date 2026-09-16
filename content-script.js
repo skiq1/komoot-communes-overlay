@@ -1,17 +1,18 @@
 (function() {
   'use strict';
 
-  const { MESSAGE } = globalThis.ZaliczGminyProtocol;
+  const { MESSAGE } = globalThis.ZaliczGminyMessageProtocol;
   const pageScripts = [
-    'messages.js',
+    'message-protocol.js',
     'config.js',
     'modules/sites.js',
-    'modules/bridge-client.js',
+    'modules/extension-bridge.js',
+    'modules/zaliczgmine-api.js',
     'modules/map-finder.js',
-    'modules/communes.js',
-    'modules/layers.js',
+    'modules/communes-data.js',
+    'modules/map-layers.js',
     'modules/gpx.js',
-    'app.js'
+    'map-app.js'
   ];
   const { isSupportedPage } = globalThis.ZaliczGminySites;
   let scriptsLoaded = false;

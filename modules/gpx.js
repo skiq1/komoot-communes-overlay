@@ -2,7 +2,7 @@
   'use strict';
 
   const { layerIds, sourceIds, styles } = app.config;
-  const { getStorage } = app.modules.bridgeClient;
+  const { getStorage } = app.modules.extensionBridge;
   let tracks = [];
 
   function getNodePoints(nodes) {

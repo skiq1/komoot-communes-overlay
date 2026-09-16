@@ -4,66 +4,34 @@
   const polygonsByRequest = new Map();
   const pendingPolygonRequests = new Map();
   const { zoom: zoomConfig } = app.config;
-  const { fetchResource, getStorage, setStorage } = app.modules.bridgeClient;
+  const { fetchResource, getStorage, setStorage } = app.modules.extensionBridge;
 
-  function extractUserCommunesFromHtml(html) {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    const links = doc.querySelectorAll('#user-communes-list a[href^="/communes/view/"]');
-    const communeIds = new Set();
+  const api = globalThis.createZaliczGmineApi(fetchResource);
 
-    for (const link of links) {
-      const match = link.getAttribute('href').match(/\/communes\/view\/(\d+)/);
-      if (match) communeIds.add(match[1]);
-    }
+  async function loadUserCommunesFromApi(userId) {
+    const data = await api.getUserCommunes(userId, 'pl');
 
-    return communeIds;
-  }
-
-  async function loadUserCommunesFromProfile(userId) {
-    const url = `https://zaliczgmine.pl/users/view/${encodeURIComponent(userId)}`;
-    const html = await fetchResource(url, 'text');
-    const communeIds = extractUserCommunesFromHtml(html);
-
-    if (communeIds.size === 0) {
-      throw new Error('Nie znaleziono gmin na profilu użytkownika');
-    }
-
+    const communeIds = new Set(data.items.map(item => String(item.id)));
     app.state.userCommunes = communeIds;
-    app.state.userCommunesSource = 'profile';
+    app.state.userCommunesSource = 'api';
     app.state.userId = String(userId);
     setStorage({ communesCount: communeIds.size });
-
-    console.log(`Zalicz Gminy: załadowano ${communeIds.size} gmin z profilu użytkownika ${userId}`);
     return communeIds;
   }
 
   async function loadUserCommunes() {
     const storage = await getStorage(['zaliczGminyUserId']);
-    const userId = storage.zaliczGminyUserId ? String(storage.zaliczGminyUserId).trim() : '';
-
-    app.state.userCommunes.clear();
-    app.state.userId = userId || null;
-    app.state.userCommunesSource = 'none';
-    setStorage({ communesCount: 0 });
-
-    if (!userId) {
-      throw new Error('Nie ustawiono ID użytkownika ZaliczGmine.pl');
-    }
-
-    return loadUserCommunesFromProfile(userId);
+    return reloadUserCommunes(storage.zaliczGminyUserId);
   }
 
   async function reloadUserCommunes(userId) {
-    app.state.userCommunes.clear();
-    app.state.userId = userId ? String(userId).trim() : null;
-    app.state.userCommunesSource = 'none';
-    setStorage({ communesCount: 0 });
-
-    if (!app.state.userId) {
-      throw new Error('Nie ustawiono ID użytkownika ZaliczGmine.pl');
+    const normalizedId = userId ? String(userId).trim() : '';
+    // only numeric user ID
+    if (!/^\d+$/.test(normalizedId)) {
+      throw new Error('Nie ustawiono poprawnego ID użytkownika ZaliczGmine.pl');
     }
 
-    return loadUserCommunesFromProfile(app.state.userId);
+    return loadUserCommunesFromApi(normalizedId);
   }
 
   function getApiZoomForMapZoom(mapZoom) {
@@ -127,20 +95,17 @@
     if (apiZoom <= zoomConfig.globalMaxMapZoom) {
       return {
         apiZoom: zoomConfig.minApiZoom,
-        cacheKey: `polygons:${zoomConfig.minApiZoom}`,
-        url: `https://zaliczgmine.pl/api/geompolygons?zoom=${zoomConfig.minApiZoom}&country=pl`
+        cacheKey: `polygons:${zoomConfig.minApiZoom}`
       };
     }
 
     const bounds = normalizeBounds(map.getBounds());
     const cacheBounds = getCacheBounds(bounds, apiZoom);
-    const boundsParam = encodeURIComponent(JSON.stringify(cacheBounds));
 
     return {
       apiZoom,
       bounds: cacheBounds,
-      cacheKey: `polygons:${apiZoom}:${cacheBounds.north}:${cacheBounds.east}:${cacheBounds.south}:${cacheBounds.west}`,
-      url: `https://zaliczgmine.pl/api/geompolygons?zoom=${apiZoom}&country=pl&bounds=${boundsParam}`
+      cacheKey: `polygons:${apiZoom}:${cacheBounds.north}:${cacheBounds.east}:${cacheBounds.south}:${cacheBounds.west}`
     };
   }
 
@@ -186,15 +151,10 @@
     }
 
     try {
-      const pendingRequest = fetchResource(request.url).then(data => {
-        if (data.status !== 'success' || !Array.isArray(data.items)) {
-          throw new Error('Nieprawidłowa odpowiedź z API');
-        }
-
-        rememberPolygons(request.cacheKey, data.items);
-
-        console.log(`Zalicz Gminy: pobrano ${data.items.length} gmin dla zoom=${request.apiZoom}`);
-        return data.items;
+      const pendingRequest = api.getPolygons(request.apiZoom, 'pl', request.bounds).then(items => {
+        rememberPolygons(request.cacheKey, items);
+        console.log(`Zalicz Gminy: pobrano ${items.length} gmin dla zoom=${request.apiZoom}`);
+        return items;
       });
 
       pendingPolygonRequests.set(request.cacheKey, pendingRequest);
@@ -245,7 +205,7 @@
     return { type: 'FeatureCollection', features };
   }
 
-  app.modules.communesApi = {
+  app.modules.communesData = {
     loadUserCommunes,
     reloadUserCommunes,
     getApiZoomForMapZoom,

@@ -427,7 +427,7 @@
 
       <div class="header-copy">
         <div class="header-title">ZaliczGmine.pl</div>
-        <div class="header-subtitle">Nakładka mapy dla Komoot</div>
+        <div class="header-subtitle">Nakładka mapy dla Komoot i VeloPlanner</div>
       </div>
     </header>
 
@@ -454,22 +454,21 @@
         <input
           id="userIdInput"
           type="text"
-          inputmode="numeric"
-          pattern="[0-9]*"
-          placeholder="ID użytkownika, np. 5673"
+          placeholder="Nick lub ID użytkownika"
+          aria-label="Nick lub ID użytkownika"
         >
         <button
           class="btn btn-primary"
           id="saveUserIdBtn"
         >
-          Zapisz
+          Szukaj
         </button>
       </div>
 
+      <div id="userSearchResults" class="gpx-list" aria-live="polite"></div>
+
       <div class="settings-hint">
-        Numer znajdujący się po
-        <strong>/users/view/</strong>
-        w adresie profilu.
+        Wpisz nick lub ID, wyszukaj i wybierz konto.
       </div>
     </div>
 
@@ -543,7 +542,8 @@
 
   </div>
 
-  <script src="../messages.js"></script>
+  <script src="../message-protocol.js"></script>
+  <script src="../modules/zaliczgmine-api.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
