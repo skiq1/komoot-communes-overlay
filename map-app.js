@@ -112,6 +112,7 @@
       }
 
       await waitForStyleLoad();
+      app.modules.plannedRoute.start();
 
       const initialRequest = getPolygonRequestForMap(map);
       const polygons = await fetchPolygons(initialRequest);

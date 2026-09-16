@@ -59,7 +59,8 @@
     if (!app.state.map || !app.state.polygons) return;
 
     const { convertToGeoJSON } = app.modules.communesData;
-    const beforeLayer = findInsertBeforeLayer();
+    const beforeLayer = app.state.map.getLayer(layerIds.routeFill)
+      ? layerIds.routeFill : findInsertBeforeLayer();
 
     setMapboxSource(sourceIds.visited, convertToGeoJSON(app.state.polygons, true));
     setMapboxSource(sourceIds.unvisited, convertToGeoJSON(app.state.polygons, false));
@@ -112,6 +113,7 @@
 
   function refreshCommunesStyles() {
     updateUserSummary();
+    app.modules.plannedRoute?.render();
     if (!app.state.map) return;
 
     if (allLayersExist()) {
@@ -157,6 +159,7 @@
 
     updateToggleButton();
     updateOutlineVisibility();
+    app.modules.plannedRoute?.setVisible(visible);
 
     if (visible && refreshVisibleLayers) {
       refreshCommunesForCurrentZoom();
