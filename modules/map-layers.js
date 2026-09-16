@@ -111,6 +111,7 @@
   }
 
   function refreshCommunesStyles() {
+    updateUserSummary();
     if (!app.state.map) return;
 
     if (allLayersExist()) {
@@ -182,8 +183,25 @@
     const button = document.getElementById('zalicz-gminy-toggle');
     if (!button) return;
 
-    button.style.background = app.state.communesVisible ? '#b9c0ba' : '#ffffff';
-    button.setAttribute('aria-pressed', String(app.state.communesVisible));
+    const visible = app.state.communesVisible;
+    button.style.background = visible ? '#348b42' : '#b8c0ba';
+    button.setAttribute('aria-checked', String(visible));
+    button.title = visible ? 'Ukryj granice gmin' : 'Pokaż granice gmin';
+    button.firstElementChild.style.transform = visible ? 'translateX(16px)' : 'translateX(0)';
+  }
+
+  function updateUserSummary() {
+    const summary = document.getElementById('zalicz-gminy-user-summary');
+    if (!summary) return;
+
+    const hasUser = app.state.userCommunesSource !== 'none';
+    const username = hasUser ? (app.state.username || `ID: ${app.state.userId}`) : 'ZaliczGmine.pl';
+    const count = app.state.userCommunes.size;
+    summary.querySelector('[data-username]').textContent = username;
+    summary.querySelector('[data-count]').textContent = hasUser
+      ? `${count.toLocaleString('pl-PL')} zaliczonych gmin`
+      : 'Wybierz konto w rozszerzeniu';
+    summary.title = hasUser ? `ZaliczGmine.pl · ${username} · ${count} zaliczonych gmin w Polsce` : 'ZaliczGmine.pl';
   }
 
   function addToggleButton() {
@@ -195,29 +213,63 @@
 
     const buttonContainer = document.createElement('div');
     buttonContainer.className = 'maplibregl-ctrl';
+    buttonContainer.style.cssText = `
+      display: flex; align-items: center; gap: 14px;
+      box-sizing: border-box; max-width: min(280px, 70vw);
+      margin-top: 1rem; padding: 10px 12px;
+      border: 1px solid rgba(35, 60, 40, 0.10); border-radius: 12px;
+      background: rgba(255, 255, 255, 0.97);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+      pointer-events: auto;
+    `;
 
     const button = document.createElement('button');
     button.id = 'zalicz-gminy-toggle';
     button.type = 'button';
-    button.title = 'Pokaż/ukryj gminy';
-    button.textContent = 'G';
+    button.setAttribute('role', 'switch');
+    button.setAttribute('aria-label', 'Granice gmin');
     button.style.cssText = `
-      margin-top: 1rem;
-      padding: 0.5rem 0.75rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
-      cursor: pointer;
-      line-height: 1.0125rem;
-      font: 700 15px/1 Arial, sans-serif;
-      color: #2f9e44;
+      position: relative; flex: 0 0 40px; width: 40px; height: 24px;
+      min-width: 40px; min-height: 24px; margin: 0; padding: 3px;
+      border: 0; border-radius: 999px; cursor: pointer;
+      transition: background 150ms ease;
     `;
+    const thumb = document.createElement('span');
+    thumb.setAttribute('aria-hidden', 'true');
+    thumb.style.cssText = `
+      display: block; width: 18px; height: 18px; border-radius: 50%;
+      background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      transition: transform 150ms ease; pointer-events: none;
+    `;
+    button.appendChild(thumb);
+    button.addEventListener('focus', () => {
+      button.style.outline = '2px solid #246b31';
+      button.style.outlineOffset = '3px';
+    });
+    button.addEventListener('blur', () => { button.style.outline = ''; });
     button.addEventListener('click', () => toggleLayers(!app.state.communesVisible));
 
+    const summary = document.createElement('div');
+    summary.id = 'zalicz-gminy-user-summary';
+    summary.setAttribute('role', 'status');
+    summary.setAttribute('aria-live', 'polite');
+    summary.style.cssText = `
+      min-width: 0; color: #28332b; font: 12px/1.5 Arial, sans-serif;
+    `;
+    const name = document.createElement('div');
+    name.setAttribute('data-username', '');
+    name.style.cssText = 'font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
+    const count = document.createElement('div');
+    count.setAttribute('data-count', '');
+    count.style.cssText = 'font-size: 11px; color: #52705a;';
+    summary.appendChild(name);
+    summary.appendChild(count);
+
+    buttonContainer.appendChild(summary);
     buttonContainer.appendChild(button);
     mapControls.appendChild(buttonContainer);
     updateToggleButton();
+    updateUserSummary();
   }
 
   async function waitForStyleLoad() {

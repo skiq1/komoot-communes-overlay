@@ -62,6 +62,7 @@
     polygons: null,
     polygonsKey: null,
     userId: null,
+    username: null,
     userCommunesSource: 'none',
     userCommunes: new Set()
   };

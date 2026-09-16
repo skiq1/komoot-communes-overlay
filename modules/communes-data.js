@@ -15,6 +15,7 @@
     app.state.userCommunes = communeIds;
     app.state.userCommunesSource = 'api';
     app.state.userId = String(userId);
+    app.state.username = data.user?.username || null;
     setStorage({ communesCount: data.count });
     // console.log(data.count)
     // console.log(communeIds.size)
