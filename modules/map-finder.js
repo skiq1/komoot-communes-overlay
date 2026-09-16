@@ -5,6 +5,7 @@
     ancestors: 8,
     depth: 14,
     objects: 5000,
+    collectionItems: 32,
     propertiesPerObject: 250
   };
 
@@ -48,6 +49,11 @@
   }
 
   function ownDataValues(object) {
+    // skip large route-data arrays.
+    if (Array.isArray(object) && object.length > SEARCH_LIMITS.collectionItems) {
+      return [];
+    }
+
     let descriptors;
 
     try {
@@ -89,10 +95,12 @@
   function locateOwnerOfCanvas(canvas) {
     const seen = new WeakSet();
     const pending = rootsForCanvas(canvas).map(value => ({ value, depth: 0 }));
+    let nextEntry = 0;
     let inspected = 0;
 
-    while (pending.length > 0 && inspected < SEARCH_LIMITS.objects) {
-      const entry = pending.pop();
+    // Breadth-first avoids exhausting the limit on large route data.
+    while (nextEntry < pending.length && inspected < SEARCH_LIMITS.objects) {
+      const entry = pending[nextEntry++];
       const candidate = entry.value;
 
       if (seen.has(candidate)) continue;
