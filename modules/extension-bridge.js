@@ -37,7 +37,7 @@
   }
 
   //
-  // Storage & fetching repository
+  // Storage and page-to-extension transport
   //
   async function fetchResource(url, responseType = 'json') {
     const message = await request(
@@ -48,7 +48,9 @@
     );
 
     if (!message.response || !message.response.success) {
-      throw new Error(message.response?.error || 'Nie udało się pobrać danych');
+      throw Object.assign(new Error(message.response?.error || 'Nie udało się pobrać danych'), {
+        code: message.response?.code, http: message.response?.http
+      });
     }
 
     return message.response.data;
@@ -69,9 +71,9 @@
     window.postMessage({ type: MESSAGE.STORAGE_SET, data }, window.location.origin);
   }
 
-  app.modules.bridgeClient = {
+  app.modules.extensionBridge = {
     fetchResource,
     getStorage,
     setStorage
   };
-})(window.ZaliczGminy, globalThis.ZaliczGminyProtocol);
+})(window.ZaliczGminy, globalThis.ZaliczGminyMessageProtocol);

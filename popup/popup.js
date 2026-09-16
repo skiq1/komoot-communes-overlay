@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const { ACTION, MESSAGE } = globalThis.ZaliczGminyProtocol;
+  const { ACTION } = globalThis.ZaliczGminyMessageProtocol;
+  const api = globalThis.createZaliczGmineApi();
   const communesCountEl = document.getElementById('communesCount');
   const toggleBtn = document.getElementById('toggleBtn');
   const userIdInput = document.getElementById('userIdInput');
@@ -221,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (event.key === 'Enter') saveUserIdBtn.click();
   });
 
-  saveUserIdBtn.addEventListener('click', function() {
+  saveUserIdBtn.addEventListener('click', async function() {
     const query = userIdInput.value.trim();
     const version = ++searchVersion;
     userSearchResults.textContent = '';
@@ -230,27 +231,15 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     showStatus('Wyszukiwanie użytkowników…', 'info');
-    chrome.runtime.sendMessage({
-      type: MESSAGE.FETCH,
-      url: 'https://zaliczgmine.pl/api/usersearch?q=' + encodeURIComponent(query)
-    }, function(response) {
-      const runtimeError = chrome.runtime.lastError;
+    try {
+      const users = await api.searchUsers(query);
       if (version !== searchVersion) return;
-      if (runtimeError || !response?.success) {
-        showStatus(response?.error || 'Nie udało się wyszukać użytkowników', 'error');
-        return;
-      }
-      const data = response.data;
-      if (data?.status !== 'success' || !Array.isArray(data.items)) {
-        showStatus(data?.message || 'Nieprawidłowa odpowiedź z API', 'error');
-        return;
-      }
-      if (!data.items.length) {
+      if (!users.length) {
         showStatus('Nie znaleziono użytkowników', 'info');
         return;
       }
       showStatus('Wybierz konto z listy', 'info');
-      for (const user of data.items) {
+      for (const user of users) {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'btn btn-secondary';
@@ -259,7 +248,10 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', () => saveUser(user));
         userSearchResults.appendChild(button);
       }
-    });
+    } catch (error) {
+      if (version !== searchVersion) return;
+      showStatus(error.message, 'error');
+    }
   });
 
   function saveUser(user) {

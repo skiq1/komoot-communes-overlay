@@ -1,12 +1,6 @@
-importScripts('messages.js');
+importScripts('message-protocol.js');
 
-const { MESSAGE } = globalThis.ZaliczGminyProtocol;
-
-const API_ERROR_MESSAGES = {
-  INVALID_REQUEST: 'Nieprawidłowe parametry zapytania',
-  INVALID_COUNTRY: 'Nieobsługiwany kraj',
-  USER_NOT_FOUND: 'Nie znaleziono użytkownika'
-};
+const { MESSAGE } = globalThis.ZaliczGminyMessageProtocol;
 
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
@@ -24,13 +18,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return response.text();
       }
       const data = await response.json();
-      if (!response.ok || data.status === 'error') {
-        throw new Error(API_ERROR_MESSAGES[data.code] || data.message || `HTTP ${response.status}`);
+      if (!response.ok) {
+        throw Object.assign(new Error(data?.message || `HTTP ${response.status}`), {
+          code: data?.code, http: response.status
+        });
       }
       return data;
     })
     .then((data) => sendResponse({ success: true, data }))
-    .catch((error) => sendResponse({ success: false, error: error.message }));
+    .catch((error) => sendResponse({ success: false, error: error.message, code: error.code, http: error.http }));
 
   return true;
 });

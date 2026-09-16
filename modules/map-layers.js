@@ -58,7 +58,7 @@
   function addCommunesLayers() {
     if (!app.state.map || !app.state.polygons) return;
 
-    const { convertToGeoJSON } = app.modules.communesApi;
+    const { convertToGeoJSON } = app.modules.communesData;
     const beforeLayer = findInsertBeforeLayer();
 
     setMapboxSource(sourceIds.visited, convertToGeoJSON(app.state.polygons, true));
@@ -105,7 +105,7 @@
   function updateCommunesSources() {
     if (!app.state.map || !app.state.polygons) return;
 
-    const { convertToGeoJSON } = app.modules.communesApi;
+    const { convertToGeoJSON } = app.modules.communesData;
     setMapboxSource(sourceIds.visited, convertToGeoJSON(app.state.polygons, true));
     setMapboxSource(sourceIds.unvisited, convertToGeoJSON(app.state.polygons, false));
   }
@@ -124,7 +124,7 @@
     if (!app.state.communesVisible) return;
     updateOutlineVisibility();
 
-    const { getPolygonRequestForMap, fetchPolygons, activatePolygons } = app.modules.communesApi;
+    const { getPolygonRequestForMap, fetchPolygons, activatePolygons } = app.modules.communesData;
     const request = getPolygonRequestForMap(app.state.map);
 
     if (request.cacheKey === app.state.polygonsKey && app.state.polygons) return;
@@ -289,7 +289,7 @@
     }, 4000);
   }
 
-  app.modules.layers = {
+  app.modules.mapLayers = {
     addCommunesLayers,
     addToggleButton,
     refreshCommunesForCurrentZoom,

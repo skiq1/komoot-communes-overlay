@@ -4,14 +4,12 @@
   const polygonsByRequest = new Map();
   const pendingPolygonRequests = new Map();
   const { zoom: zoomConfig } = app.config;
-  const { fetchResource, getStorage, setStorage } = app.modules.bridgeClient;
+  const { fetchResource, getStorage, setStorage } = app.modules.extensionBridge;
+
+  const api = globalThis.createZaliczGmineApi(fetchResource);
 
   async function loadUserCommunesFromApi(userId) {
-    const params = new URLSearchParams({ user_id: userId, country: 'pl' });
-    const data = await fetchResource(`https://zaliczgmine.pl/api/usercommunes?${params}`);
-    if (data.status !== 'success' || !Array.isArray(data.items)) {
-      throw new Error(data.message || 'Nieprawidłowa odpowiedź z API');
-    }
+    const data = await api.getUserCommunes(userId, 'pl');
 
     const communeIds = new Set(data.items.map(item => String(item.id)));
     app.state.userCommunes = communeIds;
@@ -97,20 +95,17 @@
     if (apiZoom <= zoomConfig.globalMaxMapZoom) {
       return {
         apiZoom: zoomConfig.minApiZoom,
-        cacheKey: `polygons:${zoomConfig.minApiZoom}`,
-        url: `https://zaliczgmine.pl/api/geompolygons?zoom=${zoomConfig.minApiZoom}&country=pl`
+        cacheKey: `polygons:${zoomConfig.minApiZoom}`
       };
     }
 
     const bounds = normalizeBounds(map.getBounds());
     const cacheBounds = getCacheBounds(bounds, apiZoom);
-    const boundsParam = encodeURIComponent(JSON.stringify(cacheBounds));
 
     return {
       apiZoom,
       bounds: cacheBounds,
-      cacheKey: `polygons:${apiZoom}:${cacheBounds.north}:${cacheBounds.east}:${cacheBounds.south}:${cacheBounds.west}`,
-      url: `https://zaliczgmine.pl/api/geompolygons?zoom=${apiZoom}&country=pl&bounds=${boundsParam}`
+      cacheKey: `polygons:${apiZoom}:${cacheBounds.north}:${cacheBounds.east}:${cacheBounds.south}:${cacheBounds.west}`
     };
   }
 
@@ -156,15 +151,10 @@
     }
 
     try {
-      const pendingRequest = fetchResource(request.url).then(data => {
-        if (data.status !== 'success' || !Array.isArray(data.items)) {
-          throw new Error('Nieprawidłowa odpowiedź z API');
-        }
-
-        rememberPolygons(request.cacheKey, data.items);
-
-        console.log(`Zalicz Gminy: pobrano ${data.items.length} gmin dla zoom=${request.apiZoom}`);
-        return data.items;
+      const pendingRequest = api.getPolygons(request.apiZoom, 'pl', request.bounds).then(items => {
+        rememberPolygons(request.cacheKey, items);
+        console.log(`Zalicz Gminy: pobrano ${items.length} gmin dla zoom=${request.apiZoom}`);
+        return items;
       });
 
       pendingPolygonRequests.set(request.cacheKey, pendingRequest);
@@ -215,7 +205,7 @@
     return { type: 'FeatureCollection', features };
   }
 
-  app.modules.communesApi = {
+  app.modules.communesData = {
     loadUserCommunes,
     reloadUserCommunes,
     getApiZoomForMapZoom,
