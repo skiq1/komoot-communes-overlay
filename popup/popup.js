@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+  const log = globalThis.ZaliczGminyLogger.create('popup');
   const { ACTION } = globalThis.ZaliczGminyMessageProtocol;
   const api = globalThis.createZaliczGmineApi();
   const communesCountEl = document.getElementById('communesCount');
@@ -353,13 +354,15 @@ document.addEventListener('DOMContentLoaded', function() {
   // }
 
   function sendMessageToContentScript(message, callback) {
+    log.debug('Wysyłanie polecenia', { action: message.action });
     chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
       if (tabs[0]) {
         chrome.tabs.sendMessage(tabs[0].id, message, function(response) {
           if (chrome.runtime.lastError) {
-            console.log('Error:', chrome.runtime.lastError);
+            log.warn('Brak odpowiedzi karty', chrome.runtime.lastError);
             if (callback) callback(null);
           } else {
+            log.debug('Odpowiedź na polecenie', { action: message.action, success: response?.success, connected: response?.connected });
             if (callback) callback(response);
           }
         });

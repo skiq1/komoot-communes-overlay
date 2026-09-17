@@ -1,6 +1,8 @@
 (function(app, protocol) {
   'use strict';
 
+  const log = globalThis.ZaliczGminyLogger.create('extension-bridge');
+
   const { MESSAGE } = protocol;
 
   function createRequestId() {
@@ -10,6 +12,7 @@
   function request(type, responseType, data, timeoutMs) {
     return new Promise((resolve, reject) => {
       const requestId = createRequestId();
+      log.debug('Wysłanie żądania', { type, requestId });
       let timeoutId;
 
       const handler = (event) => {
@@ -19,6 +22,7 @@
         window.removeEventListener('message', handler);
         window.clearTimeout(timeoutId);
 
+        log.debug('Odpowiedź rozszerzenia', { type, requestId, success: !event.data.error && event.data.response?.success !== false });
         if (event.data.error) {
           reject(new Error(event.data.error));
         } else {
@@ -31,6 +35,7 @@
 
       timeoutId = window.setTimeout(() => {
         window.removeEventListener('message', handler);
+        log.warn('Przekroczono czas żądania', { type, requestId, timeoutMs });
         reject(new Error('Brak odpowiedzi rozszerzenia'));
       }, timeoutMs);
     });

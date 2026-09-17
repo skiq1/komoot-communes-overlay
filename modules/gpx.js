@@ -1,6 +1,8 @@
 (function(app) {
   'use strict';
 
+  const log = globalThis.ZaliczGminyLogger.create('gpx');
+
   const { layerIds, sourceIds, styles } = app.config;
   const { getStorage } = app.modules.extensionBridge;
   let tracks = [];
@@ -145,6 +147,7 @@
     }
 
     const geojson = parseGpx(gpxText);
+    log.debug('Wczytano GPX', { segmentsCount: geojson.features.length });
     const track = {
       id: id || Math.random().toString(36).slice(2),
       name: name || 'track.gpx',
@@ -169,6 +172,7 @@
   }
 
   function removeGpx(id) {
+    log.debug('Usuwanie GPX', { all: !id, tracksCount: tracks.length });
     if (id) {
       const tracksCount = tracks.length;
       tracks = tracks.filter(track => track.id !== id);
@@ -197,7 +201,7 @@
       try {
         setGpx(track.text, track.name, track.id);
       } catch (error) {
-        console.error(`Pominięto GPX "${track.name || 'track.gpx'}":`, error);
+        log.error(`Pominięto GPX "${track.name || 'track.gpx'}":`, error);
       }
     }
 

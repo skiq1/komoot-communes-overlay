@@ -1,8 +1,11 @@
 (function() {
   'use strict';
 
+  const log = globalThis.ZaliczGminyLogger.create('content-script');
+
   const { MESSAGE } = globalThis.ZaliczGminyMessageProtocol;
   const pageScripts = [
+    'logger.js',
     'message-protocol.js',
     'config.js',
     'modules/sites.js',
@@ -83,6 +86,7 @@
       return false;
     }
 
+    log.debug('Przekazywanie polecenia', { action: request.action });
     const scriptsReady = loadScripts();
     const requestId = Math.random().toString(36).slice(2);
 
@@ -114,6 +118,7 @@
     });
 
     const timeoutId = setTimeout(() => {
+      log.warn('Przekroczono czas polecenia', { action: request.action, requestId });
       window.removeEventListener('message', handler);
       sendResponse({ success: false, error: 'Timeout' });
     }, 5000);
@@ -140,16 +145,17 @@
     scriptsLoading = (async () => {
       for (const script of pageScripts) {
         await injectScript(script);
+        log.debug('Załadowano skrypt', { script });
       }
       scriptsLoaded = true;
-      console.log('Skrypty strony zaladowane');
+      log.debug('Skrypty strony zaladowane');
     })();
 
     try {
       await scriptsLoading;
     } catch (error) {
       scriptsLoading = null;
-      console.error('Error:', error);
+      log.error('Nie udało się załadować skryptów', error);
       throw error;
     }
   }
@@ -164,6 +170,7 @@
     setInterval(() => {
       if (location.pathname === lastPath) return;
       lastPath = location.pathname;
+      log.debug('Zmiana strony', { supported: isSupportedRoute() });
       loadScriptsIfSupported();
     }, 1000);
   }

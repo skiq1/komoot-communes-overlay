@@ -1,6 +1,8 @@
 (function(app) {
   'use strict';
 
+  const log = globalThis.ZaliczGminyLogger.create('communes-data');
+
   const polygonsByRequest = new Map();
   const pendingPolygonRequests = new Map();
   const { zoom: zoomConfig } = app.config;
@@ -12,13 +14,12 @@
     const data = await api.getUserCommunes(userId, 'pl');
 
     const communeIds = new Set(data.items.map(item => String(item.id)));
+    log.debug('Załadowano zaliczone gminy', { count: communeIds.size });
     app.state.userCommunes = communeIds;
     app.state.userCommunesSource = 'api';
     app.state.userId = String(userId);
     app.state.username = data.user?.username || null;
     setStorage({ communesCount: data.count });
-    // console.log(data.count)
-    // console.log(communeIds.size)
 
     // update only if name is stillthe same as selected account.
     const storage = await getStorage(['zaliczGminyUserId']);
@@ -150,12 +151,14 @@
 
   async function fetchPolygons(request) {
     if (polygonsByRequest.has(request.cacheKey)) {
+      log.debug('Gminy z cache', { apiZoom: request.apiZoom });
       const cachedPolygons = polygonsByRequest.get(request.cacheKey);
       rememberPolygons(request.cacheKey, cachedPolygons);
       return cachedPolygons;
     }
 
     if (pendingPolygonRequests.has(request.cacheKey)) {
+      log.debug('Współdzielenie trwającego żądania gmin', { apiZoom: request.apiZoom });
       // Share the same error handling as the original caller.
       return pendingPolygonRequests.get(request.cacheKey).catch(() => null);
     }
@@ -163,14 +166,14 @@
     try {
       const pendingRequest = api.getPolygons(request.apiZoom, 'pl', request.bounds).then(items => {
         rememberPolygons(request.cacheKey, items);
-        console.log(`Zalicz Gminy: pobrano ${items.length} gmin dla zoom=${request.apiZoom}`);
+        log.debug(`pobrano ${items.length} gmin dla zoom=${request.apiZoom}`);
         return items;
       });
 
       pendingPolygonRequests.set(request.cacheKey, pendingRequest);
       return await pendingRequest;
     } catch (error) {
-      console.error(`Zalicz Gminy: błąd pobierania gmin dla zoom=${request.apiZoom}:`, error);
+      log.error(`błąd pobierania gmin dla zoom=${request.apiZoom}:`, error);
       return null;
     } finally {
       pendingPolygonRequests.delete(request.cacheKey);
@@ -207,6 +210,7 @@
   }
 
   function activatePolygons(request, polygons) {
+    log.debug('Aktywacja granic gmin', { apiZoom: request.apiZoom, count: polygons.length });
     app.state.polygonsKey = request.cacheKey;
     app.state.polygons = polygons;
   }
@@ -237,7 +241,7 @@
           }
         });
       } catch (e) {
-        console.warn(`Zalicz Gminy: pominięto błędny polygon gminy ${item.i}`);
+        log.warn(`pominięto błędny polygon gminy ${item.i}`);
       }
     }
 
