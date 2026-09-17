@@ -38,6 +38,7 @@
         "*://veloplanner.com/*"
       ],
       "js": [
+        "logger.js",
         "message-protocol.js",
         "modules/sites.js",
         "content-script.js"
@@ -57,6 +58,7 @@
         "*://veloplanner.com/*"
       ],
       "resources": [
+        "logger.js",
         "message-protocol.js",
         "config.js",
         "modules/sites.js",
