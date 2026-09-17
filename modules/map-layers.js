@@ -1,6 +1,8 @@
 (function(app) {
   'use strict';
 
+  const log = globalThis.ZaliczGminyLogger.create('map-layers');
+
   const { layerIds, sourceIds, styles, zoom: zoomConfig } = app.config;
   const SHOW_VISITED_COMMUNES = false;
   const activeCommuneLayerIds = [
@@ -56,6 +58,7 @@
   }
 
   function addCommunesLayers() {
+    log.debug('Tworzenie warstw gmin');
     if (!app.state.map || !app.state.polygons) return;
 
     const { convertToGeoJSON } = app.modules.communesData;
@@ -148,6 +151,7 @@
   }
 
   function toggleLayers(visible, refreshVisibleLayers = true) {
+    log.debug('Zmiana widoczności gmin', { visible });
     app.state.communesVisible = visible;
     const visibility = visible ? 'visible' : 'none';
 

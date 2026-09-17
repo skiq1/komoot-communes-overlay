@@ -1,6 +1,8 @@
 (function(app) {
   'use strict';
 
+  const log = globalThis.ZaliczGminyLogger.create('map-app');
+
   const { ACTION, MESSAGE } = globalThis.ZaliczGminyMessageProtocol;
   const { loadUserCommunes, reloadUserCommunes, fetchPolygons,
           activatePolygons, getPolygonRequestForMap } = app.modules.communesData;
@@ -19,6 +21,7 @@
   } = app.modules.mapLayers;
 
   async function handleCommand(action, data = {}) {
+    log.debug('Obsługa polecenia', { action });
     if (action === ACTION.TOGGLE_COMMUNES) {
       if (!app.state.map) {
         return { success: false, error: 'Mapa nie została znaleziona' };
@@ -94,24 +97,27 @@
   });
 
   async function init() {
-    console.log('init');
+    log.debug('Rozpoczęcie inicjalizacji');
     let communesLoadError = null;
 
     try {
       await loadUserCommunes();
     } catch (error) {
       communesLoadError = error;
-      console.error('Nie udalo się pobrac zaliczonych gmin:', error);
+      log.error('Nie udalo się pobrac zaliczonych gmin:', error);
     }
 
     for (let attempt = 0; attempt < 120; attempt++) {
       const map = await findMap();
       if (!map) {
+        if (attempt % 20 === 0) log.debug('Oczekiwanie na mapę', { attempt: attempt + 1 });
         await new Promise(resolve => setTimeout(resolve, 500));
         continue;
       }
 
+      log.debug('Znaleziono mapę', { attempt: attempt + 1 });
       await waitForStyleLoad();
+      log.debug('Styl mapy gotowy');
       app.modules.plannedRoute.start();
 
       const initialRequest = getPolygonRequestForMap(map);
@@ -126,7 +132,7 @@
       try {
         await loadStoredGpx();
       } catch (error) {
-        console.error('Nie udało się załadować zapisanego GPX:', error);
+        log.error('Nie udało się załadować zapisanego GPX:', error);
       }
       refreshCommunesForCurrentZoom();
       if (communesLoadError) {
@@ -135,11 +141,11 @@
         showNotification(`Załadowano gminy. Zaliczone: ${app.state.userCommunes.size}`);
       }
 
-      console.log('Rozszerzenie gotowe');
+      log.debug('Rozszerzenie gotowe');
       return;
     }
 
-    console.log('Nie znaleziono mapy');
+    log.debug('Nie znaleziono mapy');
   }
 
   window.zaliczGminy = app.state;

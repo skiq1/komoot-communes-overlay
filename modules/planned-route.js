@@ -1,6 +1,8 @@
 (function(app) {
   'use strict';
 
+  const log = globalThis.ZaliczGminyLogger.create('planned-route');
+
   const { layerIds, sourceIds, styles } = app.config;
   const routeLayers = [layerIds.routeFill, layerIds.routeOutline];
   const empty = () => ({ type: 'FeatureCollection', features: [] });
@@ -111,6 +113,7 @@
       }
       lastLines = lines;
       current = ++revision;
+      log.debug('Analiza zmienionej trasy', { revision: current, linesCount: lines.length });
       const polygons = lines.length
         ? await app.modules.communesData.fetchRoutePolygons(lines)
         : [];
@@ -119,6 +122,7 @@
         ? await globalThis.ZaliczGminyRouteGeometry.calculate(lines, polygons, () => current !== revision)
         : [];
       if (!result || current !== revision) return;
+      log.debug('Analiza trasy zakończona', { revision: current, communesCount: result.length });
       if (result.length !== matches.length || result.some((item, i) => item !== matches[i])) matches = result;
       render();
     } catch (error) {
@@ -127,7 +131,7 @@
       lastLines = null;
       matches = [];
       render();
-      console.warn('Zalicz Gminy: nie udało się przeanalizować trasy', error);
+      log.warn('nie udało się przeanalizować trasy', error);
     }
   }
 
@@ -175,6 +179,7 @@
     stop();
     sourceId = globalThis.ZaliczGminySites.getCurrentSite()?.routeSourceId;
     if (!sourceId) return;
+    log.debug('Uruchomienie obserwacji trasy', { sourceId });
     watchedMap = app.state.map;
     watchedMap.on('sourcedata', onSourceData);
     watchedMap.on('styledata', onStyleData);
