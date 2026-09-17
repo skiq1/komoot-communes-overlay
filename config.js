@@ -69,12 +69,12 @@
     map: null,
     communesVisible: true,
     polygons: null,
-    routeCommuneIds: new Set(),
+    routeCommunesIds: new Set(),
     polygonsKey: null,
     userId: null,
     username: null,
-    visitedCommuneSource: 'none',
-    visitedCommuneIds: new Set()
+    visitedCommunesSource: 'none',
+    visitedCommunesIds: new Set()
   };
 
   global.ZaliczGmine = {

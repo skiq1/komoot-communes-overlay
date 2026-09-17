@@ -78,14 +78,14 @@
       map.addSource(sourceIds.route, { type: 'geojson', data: empty() });
       source = map.getSource(sourceIds.route);
     }
-    const unvisitedMatches = matches.filter(item => !app.state.visitedCommuneIds.has(String(item.i)));
+    const unvisitedMatches = matches.filter(item => !app.state.visitedCommunesIds.has(String(item.i)));
     if (source !== renderedSource || !renderedItems ||
       unvisitedMatches.length !== renderedItems.length ||
       unvisitedMatches.some((item, i) => item !== renderedItems[i])) {
       source.setData(app.modules.communesData.convertToGeoJSON(unvisitedMatches));
       renderedSource = source;
       renderedItems = unvisitedMatches;
-      app.state.routeCommuneIds = new Set(unvisitedMatches.map(item => String(item.i)));
+      app.state.routeCommunesIds = new Set(unvisitedMatches.map(item => String(item.i)));
     }
     // Keep the route itself above its highlighted communes.
     const before = map.getStyle()?.layers?.find(layer => layer.source === sourceId)?.id;
@@ -122,7 +122,7 @@
         ? await globalThis.ZaliczGmineRouteGeometry.calculate(lines, polygons, () => current !== revision)
         : [];
       if (!result || current !== revision) return;
-      log.debug('Analiza trasy zakończona', { revision: current, communeCount: result.length });
+      log.debug('Analiza trasy zakończona', { revision: current, communesCount: result.length });
       if (result.length !== matches.length || result.some((item, i) => item !== matches[i])) matches = result;
       render();
     } catch (error) {
@@ -171,7 +171,7 @@
     readRevision++;
     lastLines = renderedItems = renderedSource = null;
     matches = [];
-    app.state.routeCommuneIds = new Set();
+    app.state.routeCommunesIds = new Set();
   }
 
   function start() {

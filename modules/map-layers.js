@@ -5,7 +5,7 @@
 
   const { layerIds, sourceIds, styles, zoom: zoomConfig } = app.config;
   const SHOW_VISITED_COMMUNES = false;
-  const activeCommuneLayerIds = [
+  const activeCommunesLayerIds = [
     layerIds.unvisitedFill,
     layerIds.unvisitedOutline,
     ...(SHOW_VISITED_COMMUNES ? [layerIds.visitedFill, layerIds.visitedOutline] : [])
@@ -36,16 +36,16 @@
   }
 
   function removeLayers() {
-    for (const layerId of activeCommuneLayerIds) {
+    for (const layerId of activeCommunesLayerIds) {
       if (app.state.map.getLayer(layerId)) app.state.map.removeLayer(layerId);
     }
   }
 
   function allLayersExist() {
-    return activeCommuneLayerIds.every(layerId => app.state.map.getLayer(layerId));
+    return activeCommunesLayerIds.every(layerId => app.state.map.getLayer(layerId));
   }
 
-  function shouldShowCommuneOutlines() {
+  function shouldShowCommunesOutlines() {
     return app.state.map.getZoom() > zoomConfig.lowZoomOutlineMaxZoom;
   }
 
@@ -57,7 +57,7 @@
     app.state.map.addLayer({ ...layerConfig, layout }, beforeLayer);
   }
 
-  function addCommuneLayers() {
+  function addCommunesLayers() {
     log.debug('Tworzenie warstw gmin');
     if (!app.state.map || !app.state.polygons) return;
 
@@ -83,7 +83,7 @@
       source: sourceIds.unvisited,
       paint: {
         ...styles.unvisitedOutline,
-        'line-opacity': shouldShowCommuneOutlines()
+        'line-opacity': shouldShowCommunesOutlines()
           ? styles.unvisitedOutline['line-opacity']
           : 0
       }
@@ -106,7 +106,7 @@
     }
   }
 
-  function updateCommuneSources() {
+  function updateCommunesSources() {
     if (!app.state.map || !app.state.polygons) return;
 
     const { convertToGeoJSON } = app.modules.communesData;
@@ -114,13 +114,13 @@
     setMapboxSource(sourceIds.unvisited, convertToGeoJSON(app.state.polygons, false));
   }
 
-  function refreshCommuneStyles() {
+  function refreshCommunesStyles() {
     updateUserSummary();
     app.modules.plannedRoute?.render();
     if (!app.state.map) return;
 
     if (allLayersExist()) {
-      updateCommuneSources();
+      updateCommunesSources();
       toggleLayers(app.state.communesVisible, false);
     }
   }
@@ -143,10 +143,10 @@
     activatePolygons(request, polygons);
 
     if (allLayersExist()) {
-      updateCommuneSources();
+      updateCommunesSources();
       toggleLayers(app.state.communesVisible, false);
     } else {
-      addCommuneLayers();
+      addCommunesLayers();
     }
   }
 
@@ -155,7 +155,7 @@
     app.state.communesVisible = visible;
     const visibility = visible ? 'visible' : 'none';
 
-    for (const layerId of activeCommuneLayerIds) {
+    for (const layerId of activeCommunesLayerIds) {
       if (app.state.map && app.state.map.getLayer(layerId)) {
         app.state.map.setLayoutProperty(layerId, 'visibility', visibility);
       }
@@ -173,7 +173,7 @@
   function updateOutlineVisibility() {
     if (!app.state.map) return;
 
-    const outlineOpacity = shouldShowCommuneOutlines()
+    const outlineOpacity = shouldShowCommunesOutlines()
       ? styles.unvisitedOutline['line-opacity']
       : 0;
 
@@ -201,9 +201,9 @@
     const summary = document.getElementById('zaliczgmine-user-summary');
     if (!summary) return;
 
-    const hasUser = app.state.visitedCommuneSource !== 'none';
+    const hasUser = app.state.visitedCommunesSource !== 'none';
     const username = hasUser ? (app.state.username || `ID: ${app.state.userId}`) : 'ZaliczGmine.pl';
-    const count = app.state.visitedCommuneIds.size;
+    const count = app.state.visitedCommunesIds.size;
     summary.querySelector('[data-username]').textContent = username;
     summary.querySelector('[data-count]').textContent = hasUser
       ? `${count.toLocaleString('pl-PL')} zaliczonych gmin`
@@ -298,7 +298,7 @@
       if (allLayersExist()) {
         toggleLayers(app.state.communesVisible, false);
       } else {
-        addCommuneLayers();
+        addCommunesLayers();
       }
 
       app.modules.gpx.renderGpx();
@@ -349,10 +349,10 @@
   }
 
   app.modules.mapLayers = {
-    addCommuneLayers,
+    addCommunesLayers,
     addToggleButton,
     refreshCommunesForCurrentZoom,
-    refreshCommuneStyles,
+    refreshCommunesStyles,
     setupStyleChangeObserver,
     setupZoomObserver,
     showNotification,

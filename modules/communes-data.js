@@ -13,20 +13,20 @@
   async function loadVisitedCommunesFromApi(userId) {
     const data = await api.getVisitedCommunes(userId, 'pl');
 
-    const communeIds = new Set(data.items.map(item => String(item.id)));
-    log.debug('Załadowano zaliczone gminy', { count: communeIds.size });
-    app.state.visitedCommuneIds = communeIds;
-    app.state.visitedCommuneSource = 'api';
+    const communesIds = new Set(data.items.map(item => String(item.id)));
+    log.debug('Załadowano zaliczone gminy', { count: communesIds.size });
+    app.state.visitedCommunesIds = communesIds;
+    app.state.visitedCommunesSource = 'api';
     app.state.userId = String(userId);
     app.state.username = data.user?.username || null;
-    setStorage({ visitedCommuneCount: data.count });
+    setStorage({ visitedCommunesCount: data.count });
 
     // update only if name is stillthe same as selected account.
     const storage = await getStorage(['zaliczGmineUserId']);
     if (String(storage.zaliczGmineUserId) === String(userId) && data.user?.username) {
       setStorage({ zaliczGmineUsername: data.user.username });
     }
-    return communeIds;
+    return communesIds;
   }
 
   async function loadVisitedCommunes() {
@@ -220,7 +220,7 @@
 
     for (const item of items) {
       try {
-        const visited = app.state.visitedCommuneIds.has(String(item.i));
+        const visited = app.state.visitedCommunesIds.has(String(item.i));
         if (filterVisited !== null && visited !== filterVisited) continue;
 
         const coordinates = JSON.parse(item.c);

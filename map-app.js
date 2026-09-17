@@ -9,10 +9,10 @@
   const { getTracksSummary, loadStoredGpx, removeGpx, renderGpx, setGpx } = app.modules.gpx;
   const { findMap } = app.modules.mapFinder;
   const {
-    addCommuneLayers,
+    addCommunesLayers,
     addToggleButton,
     refreshCommunesForCurrentZoom,
-    refreshCommuneStyles,
+    refreshCommunesStyles,
     setupStyleChangeObserver,
     setupZoomObserver,
     showNotification,
@@ -34,13 +34,13 @@
     if (action === ACTION.RELOAD_COMMUNES) {
       try {
         await reloadVisitedCommunes(data.userId);
-        refreshCommuneStyles();
+        refreshCommunesStyles();
 
         return {
           success: true,
-          visitedCommuneCount: app.state.visitedCommuneIds.size,
+          visitedCommunesCount: app.state.visitedCommunesIds.size,
           userId: app.state.userId,
-          visitedCommuneSource: app.state.visitedCommuneSource
+          visitedCommunesSource: app.state.visitedCommunesSource
         };
       } catch (error) {
         return { success: false, error: error.message };
@@ -65,9 +65,9 @@
       return {
         connected: !!app.state.map,
         visible: app.state.communesVisible,
-        visitedCommuneCount: app.state.visitedCommuneIds.size,
+        visitedCommunesCount: app.state.visitedCommunesIds.size,
         userId: app.state.userId,
-        visitedCommuneSource: app.state.visitedCommuneSource,
+        visitedCommunesSource: app.state.visitedCommunesSource,
         gpxTracks: getTracksSummary(),
         totalLoaded: app.state.polygons ? app.state.polygons.length : 0
       };
@@ -98,12 +98,12 @@
 
   async function init() {
     log.debug('Rozpoczęcie inicjalizacji');
-    let communeLoadError = null;
+    let communesLoadError = null;
 
     try {
       await loadVisitedCommunes();
     } catch (error) {
-      communeLoadError = error;
+      communesLoadError = error;
       log.error('Nie udalo się pobrac zaliczonych gmin:', error);
     }
 
@@ -125,7 +125,7 @@
       if (!polygons) return;
 
       activatePolygons(initialRequest, polygons);
-      addCommuneLayers();
+      addCommunesLayers();
       addToggleButton();
       setupStyleChangeObserver();
       setupZoomObserver();
@@ -135,10 +135,10 @@
         log.error('Nie udało się załadować zapisanego GPX:', error);
       }
       refreshCommunesForCurrentZoom();
-      if (communeLoadError) {
-        showNotification(`Nie udało się pobrać zaliczonych gmin: ${communeLoadError.message}`);
+      if (communesLoadError) {
+        showNotification(`Nie udało się pobrać zaliczonych gmin: ${communesLoadError.message}`);
       } else {
-        showNotification(`Załadowano gminy. Zaliczone: ${app.state.visitedCommuneIds.size}`);
+        showNotification(`Załadowano gminy. Zaliczone: ${app.state.visitedCommunesIds.size}`);
       }
 
       log.debug('Rozszerzenie gotowe');

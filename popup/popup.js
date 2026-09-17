@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const log = globalThis.ZaliczGmineLogger.create('popup');
   const { ACTION } = globalThis.ZaliczGmineMessageProtocol;
   const api = globalThis.createZaliczGmineApi();
-  const visitedCommuneCountEl = document.getElementById('visitedCommuneCount');
+  const visitedCommunesCountEl = document.getElementById('visitedCommunesCount');
   const toggleBtn = document.getElementById('toggleBtn');
   const selectedUserEl = document.getElementById('selectedUser');
   const userIdInput = document.getElementById('userIdInput');
@@ -274,8 +274,8 @@ document.addEventListener('DOMContentLoaded', function() {
         data: { userId }
       }, function(response) {
         if (response?.success) {
-          visitedCommuneCountEl.textContent = response.visitedCommuneCount;
-          showStatus(`Załadowano ${response.visitedCommuneCount} gmin`, 'success');
+          visitedCommunesCountEl.textContent = response.visitedCommunesCount;
+          showStatus(`Załadowano ${response.visitedCommunesCount} gmin`, 'success');
         } else if (response?.error) {
           showStatus(response.error, 'error');
         } else {
@@ -312,8 +312,8 @@ document.addEventListener('DOMContentLoaded', function() {
         mapStatusText.textContent = 'Połączono z mapą';
         updateVisibilityButton(response.visible);
 
-        if (response.visitedCommuneCount !== undefined) {
-          visitedCommuneCountEl.textContent = response.visitedCommuneCount;
+        if (response.visitedCommunesCount !== undefined) {
+          visitedCommunesCountEl.textContent = response.visitedCommunesCount;
         }
         if (Array.isArray(response.gpxTracks)) {
           getStoredGpxTracks(function(tracks) {
@@ -324,17 +324,17 @@ document.addEventListener('DOMContentLoaded', function() {
         mapStatusDot.classList.add('disconnected');
         mapStatusDot.classList.remove('connected');
         mapStatusText.textContent = 'Brak połączenia z mapą';
-        visitedCommuneCountEl.textContent = '-';
+        visitedCommunesCountEl.textContent = '-';
 
-        // loadVisitedCommuneCountFromStorage();
+        // loadVisitedCommunesCountFromStorage();
       }
     });
   }
 
-  // function loadVisitedCommuneCountFromStorage() {
-  //   chrome.storage.local.get(['visitedCommuneCount'], function(result) {
-  //     if (result.visitedCommuneCount) {
-  //       visitedCommuneCountEl.textContent = result.visitedCommuneCount;
+  // function loadVisitedCommunesCountFromStorage() {
+  //   chrome.storage.local.get(['visitedCommunesCount'], function(result) {
+  //     if (result.visitedCommunesCount) {
+  //       visitedCommunesCountEl.textContent = result.visitedCommunesCount;
   //     }
   //   });
   // }
