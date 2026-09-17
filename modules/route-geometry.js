@@ -1,3 +1,7 @@
+/*!
+ * intersects, inRing and contains adapted from Turf.js v6.5.0 (MIT).
+ * Copyright (c) 2019 Morgan Herlocker. See THIRD_PARTY_LICENSES.txt.
+ */
 (function(global) {
   'use strict';
 
@@ -10,12 +14,20 @@
   const cross = (a, b, c) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
   const onSegment = (p, a, b) => Math.abs(cross(a, b, p)) <= EPSILON && overlaps(bounds(p, p), bounds(a, b));
 
+  // Turf line-intersect's two-segment predicate, returning only a boolean.
   function intersects(a, b, c, d) {
-    const abC = cross(a, b, c), abD = cross(a, b, d);
-    const cdA = cross(c, d, a), cdB = cross(c, d, b);
-    return ((abC > EPSILON && abD < -EPSILON || abC < -EPSILON && abD > EPSILON) &&
-      (cdA > EPSILON && cdB < -EPSILON || cdA < -EPSILON && cdB > EPSILON)) ||
-      onSegment(c, a, b) || onSegment(d, a, b) || onSegment(a, c, d) || onSegment(b, c, d);
+    // Turf returns null for collinear segments. For commune boundaries these
+    // overlaps (and degenerate segments) must count, with our existing tolerance.
+    if (onSegment(c, a, b) || onSegment(d, a, b) ||
+        onSegment(a, c, d) || onSegment(b, c, d)) return true;
+    const [x1, y1] = a, [x2, y2] = b, [x3, y3] = c, [x4, y4] = d;
+    const denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+    const numeA = (x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3);
+    const numeB = (x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3);
+    if (denom === 0) return false;
+    const uA = numeA / denom;
+    const uB = numeB / denom;
+    return uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1;
   }
 
   // A linear-time bounding-volume tree preserves the locality of consecutive
@@ -66,23 +78,32 @@
     }
   }
 
-  // Boundary touches count as intersections, including hole boundaries.
-  function* contains(point, rings) {
-    let outer = false, hole = false;
-    for (let r = 0; r < rings.length; r++) {
-      const ring = rings[r];
-      let inside = false;
-      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-        const a = ring[j], b = ring[i];
-        if (onSegment(point, a, b)) return true;
-        if ((a[1] > point[1]) !== (b[1] > point[1]) &&
-          point[0] < (b[0] - a[0]) * (point[1] - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
-        yield;
-      }
-      if (r === 0) outer = inside;
-      else hole ||= inside;
+  // Turf's inRing, with cooperative iteration.
+  function* inRing(pt, ring, ignoreBoundary = false) {
+    let isInside = false;
+    let length = ring.length;
+    if (ring[0][0] === ring[length - 1][0] && ring[0][1] === ring[length - 1][1]) length--;
+    for (let i = 0, j = length - 1; i < length; j = i++) {
+      const [xi, yi] = ring[i];
+      const [xj, yj] = ring[j];
+      // Use the application's tolerance instead of Turf's exact boundary test.
+      if (onSegment(pt, ring[j], ring[i])) return !ignoreBoundary;
+      const intersect = (yi > pt[1]) !== (yj > pt[1]) &&
+        pt[0] < ((xj - xi) * (pt[1] - yi)) / (yj - yi) + xi;
+      if (intersect) isInside = !isInside;
+      yield;
     }
-    return outer && !hole;
+    return isInside;
+  }
+
+  // Turf's Polygon containment: include the outer boundary, exclude hole
+  // interiors only, so touching a hole boundary still counts as a match.
+  function* contains(point, rings) {
+    if (!(yield* inRing(point, rings[0]))) return false;
+    for (let k = 1; k < rings.length; k++) {
+      if (yield* inRing(point, rings[k], true)) return false;
+    }
+    return true;
   }
 
   function* treesIntersect(route, polygon) {
