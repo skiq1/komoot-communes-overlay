@@ -1,7 +1,7 @@
 (function(app) {
   'use strict';
 
-  const log = globalThis.ZaliczGminyLogger.create('gpx');
+  const log = globalThis.ZaliczGmineLogger.create('gpx');
 
   const { layerIds, sourceIds, styles } = app.config;
   const { getStorage } = app.modules.extensionBridge;
@@ -188,10 +188,10 @@
   }
 
   async function loadStoredGpx() {
-    const storage = await getStorage(['zaliczGminyGpx', 'zaliczGminyGpxList']);
-    const storedTracks = Array.isArray(storage.zaliczGminyGpxList)
-      ? storage.zaliczGminyGpxList
-      : (storage.zaliczGminyGpx ? [storage.zaliczGminyGpx] : []);
+    const storage = await getStorage(['zaliczGmineGpxList']);
+    const storedTracks = Array.isArray(storage.zaliczGmineGpxList)
+      ? storage.zaliczGmineGpxList
+      : [];
 
     tracks = [];
 
@@ -223,4 +223,4 @@
     renderGpx,
     setGpx
   };
-})(window.ZaliczGminy);
+})(window.ZaliczGmine);
