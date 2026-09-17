@@ -1,7 +1,7 @@
 (function(global) {
   'use strict';
 
-  const log = globalThis.ZaliczGminyLogger.create('zaliczgmine-api');
+  const log = globalThis.ZaliczGmineLogger.create('zaliczgmine-api');
 
   const API_BASE = 'https://zaliczgmine.pl/api/';
   const API_ERROR_MESSAGES = {
@@ -13,7 +13,7 @@
   function fetchViaRuntime(url) {
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({
-        type: global.ZaliczGminyMessageProtocol.MESSAGE.FETCH,
+        type: global.ZaliczGmineMessageProtocol.MESSAGE.FETCH,
         url,
         responseType: 'json'
       }, response => {
@@ -58,7 +58,7 @@
       async searchUsers(query) {
         return (await get('usersearch', { q: query })).items;
       },
-      getUserCommunes(userId, country) {
+      getVisitedCommunes(userId, country) {
         return get('usercommunes', { user_id: userId, country });
       },
       async getPolygons(zoom, country, bounds) {

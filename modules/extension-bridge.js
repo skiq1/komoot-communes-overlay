@@ -1,7 +1,7 @@
 (function(app, protocol) {
   'use strict';
 
-  const log = globalThis.ZaliczGminyLogger.create('extension-bridge');
+  const log = globalThis.ZaliczGmineLogger.create('extension-bridge');
 
   const { MESSAGE } = protocol;
 
@@ -81,4 +81,4 @@
     getStorage,
     setStorage
   };
-})(window.ZaliczGminy, globalThis.ZaliczGminyMessageProtocol);
+})(window.ZaliczGmine, globalThis.ZaliczGmineMessageProtocol);

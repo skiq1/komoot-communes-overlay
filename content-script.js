@@ -1,9 +1,9 @@
 (function() {
   'use strict';
 
-  const log = globalThis.ZaliczGminyLogger.create('content-script');
+  const log = globalThis.ZaliczGmineLogger.create('content-script');
 
-  const { MESSAGE } = globalThis.ZaliczGminyMessageProtocol;
+  const { MESSAGE } = globalThis.ZaliczGmineMessageProtocol;
   const pageScripts = [
     'logger.js',
     'message-protocol.js',
@@ -19,7 +19,7 @@
     'modules/gpx.js',
     'map-app.js'
   ];
-  const { isSupportedPage } = globalThis.ZaliczGminySites;
+  const { isSupportedPage } = globalThis.ZaliczGmineSites;
   let scriptsLoaded = false;
   let scriptsLoading = null;
   let lastPath = location.pathname;

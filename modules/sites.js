@@ -44,7 +44,7 @@
     return site.matchesRoute(path);
   }
 
-  global.ZaliczGminySites = {
+  global.ZaliczGmineSites = {
     getCurrentSite,
     isSupportedPage
   };

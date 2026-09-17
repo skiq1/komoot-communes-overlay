@@ -1,8 +1,8 @@
 importScripts('logger.js', 'message-protocol.js');
 
-const log = globalThis.ZaliczGminyLogger.create('background');
+const log = globalThis.ZaliczGmineLogger.create('background');
 
-const { MESSAGE } = globalThis.ZaliczGminyMessageProtocol;
+const { MESSAGE } = globalThis.ZaliczGmineMessageProtocol;
 
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {

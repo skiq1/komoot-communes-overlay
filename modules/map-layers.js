@@ -1,7 +1,7 @@
 (function(app) {
   'use strict';
 
-  const log = globalThis.ZaliczGminyLogger.create('map-layers');
+  const log = globalThis.ZaliczGmineLogger.create('map-layers');
 
   const { layerIds, sourceIds, styles, zoom: zoomConfig } = app.config;
   const SHOW_VISITED_COMMUNES = false;
@@ -57,7 +57,7 @@
     app.state.map.addLayer({ ...layerConfig, layout }, beforeLayer);
   }
 
-  function addCommunesLayers() {
+  function addCommuneLayers() {
     log.debug('Tworzenie warstw gmin');
     if (!app.state.map || !app.state.polygons) return;
 
@@ -106,7 +106,7 @@
     }
   }
 
-  function updateCommunesSources() {
+  function updateCommuneSources() {
     if (!app.state.map || !app.state.polygons) return;
 
     const { convertToGeoJSON } = app.modules.communesData;
@@ -114,13 +114,13 @@
     setMapboxSource(sourceIds.unvisited, convertToGeoJSON(app.state.polygons, false));
   }
 
-  function refreshCommunesStyles() {
+  function refreshCommuneStyles() {
     updateUserSummary();
     app.modules.plannedRoute?.render();
     if (!app.state.map) return;
 
     if (allLayersExist()) {
-      updateCommunesSources();
+      updateCommuneSources();
       toggleLayers(app.state.communesVisible, false);
     }
   }
@@ -143,10 +143,10 @@
     activatePolygons(request, polygons);
 
     if (allLayersExist()) {
-      updateCommunesSources();
+      updateCommuneSources();
       toggleLayers(app.state.communesVisible, false);
     } else {
-      addCommunesLayers();
+      addCommuneLayers();
     }
   }
 
@@ -187,7 +187,7 @@
   }
 
   function updateToggleButton() {
-    const button = document.getElementById('zalicz-gminy-toggle');
+    const button = document.getElementById('zaliczgmine-toggle');
     if (!button) return;
 
     const visible = app.state.communesVisible;
@@ -198,12 +198,12 @@
   }
 
   function updateUserSummary() {
-    const summary = document.getElementById('zalicz-gminy-user-summary');
+    const summary = document.getElementById('zaliczgmine-user-summary');
     if (!summary) return;
 
-    const hasUser = app.state.userCommunesSource !== 'none';
+    const hasUser = app.state.visitedCommuneSource !== 'none';
     const username = hasUser ? (app.state.username || `ID: ${app.state.userId}`) : 'ZaliczGmine.pl';
-    const count = app.state.userCommunes.size;
+    const count = app.state.visitedCommuneIds.size;
     summary.querySelector('[data-username]').textContent = username;
     summary.querySelector('[data-count]').textContent = hasUser
       ? `${count.toLocaleString('pl-PL')} zaliczonych gmin`
@@ -212,11 +212,11 @@
   }
 
   function addToggleButton() {
-    const site = globalThis.ZaliczGminySites.getCurrentSite(location);
+    const site = globalThis.ZaliczGmineSites.getCurrentSite(location);
     const mapControls = site?.controlsContainer();
 
     // const mapControls = document.querySelector('.maplibregl-ctrl-top-left, .mapboxgl-ctrl-top-left');
-    if (!mapControls || document.getElementById('zalicz-gminy-toggle')) return;
+    if (!mapControls || document.getElementById('zaliczgmine-toggle')) return;
 
     const buttonContainer = document.createElement('div');
     buttonContainer.className = 'maplibregl-ctrl';
@@ -231,7 +231,7 @@
     `;
 
     const button = document.createElement('button');
-    button.id = 'zalicz-gminy-toggle';
+    button.id = 'zaliczgmine-toggle';
     button.type = 'button';
     button.setAttribute('role', 'switch');
     button.setAttribute('aria-label', 'Granice gmin');
@@ -257,7 +257,7 @@
     button.addEventListener('click', () => toggleLayers(!app.state.communesVisible));
 
     const summary = document.createElement('div');
-    summary.id = 'zalicz-gminy-user-summary';
+    summary.id = 'zaliczgmine-user-summary';
     summary.setAttribute('role', 'status');
     summary.setAttribute('aria-live', 'polite');
     summary.style.cssText = `
@@ -298,7 +298,7 @@
       if (allLayersExist()) {
         toggleLayers(app.state.communesVisible, false);
       } else {
-        addCommunesLayers();
+        addCommuneLayers();
       }
 
       app.modules.gpx.renderGpx();
@@ -323,11 +323,11 @@
   }
 
   function showNotification(message) {
-    const existing = document.getElementById('zalicz-gminy-notification');
+    const existing = document.getElementById('zaliczgmine-notification');
     if (existing) existing.remove();
 
     const notification = document.createElement('div');
-    notification.id = 'zalicz-gminy-notification';
+    notification.id = 'zaliczgmine-notification';
     notification.textContent = message;
     notification.style.cssText = `
       position: fixed;
@@ -349,14 +349,14 @@
   }
 
   app.modules.mapLayers = {
-    addCommunesLayers,
+    addCommuneLayers,
     addToggleButton,
     refreshCommunesForCurrentZoom,
-    refreshCommunesStyles,
+    refreshCommuneStyles,
     setupStyleChangeObserver,
     setupZoomObserver,
     showNotification,
     toggleLayers,
     waitForStyleLoad
   };
-})(window.ZaliczGminy);
+})(window.ZaliczGmine);

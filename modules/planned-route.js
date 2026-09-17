@@ -1,7 +1,7 @@
 (function(app) {
   'use strict';
 
-  const log = globalThis.ZaliczGminyLogger.create('planned-route');
+  const log = globalThis.ZaliczGmineLogger.create('planned-route');
 
   const { layerIds, sourceIds, styles } = app.config;
   const routeLayers = [layerIds.routeFill, layerIds.routeOutline];
@@ -78,7 +78,7 @@
       map.addSource(sourceIds.route, { type: 'geojson', data: empty() });
       source = map.getSource(sourceIds.route);
     }
-    const unvisitedMatches = matches.filter(item => !app.state.userCommunes.has(String(item.i)));
+    const unvisitedMatches = matches.filter(item => !app.state.visitedCommuneIds.has(String(item.i)));
     if (source !== renderedSource || !renderedItems ||
       unvisitedMatches.length !== renderedItems.length ||
       unvisitedMatches.some((item, i) => item !== renderedItems[i])) {
@@ -119,10 +119,10 @@
         : [];
       if (current !== revision) return;
       const result = lines.length && polygons.length
-        ? await globalThis.ZaliczGminyRouteGeometry.calculate(lines, polygons, () => current !== revision)
+        ? await globalThis.ZaliczGmineRouteGeometry.calculate(lines, polygons, () => current !== revision)
         : [];
       if (!result || current !== revision) return;
-      log.debug('Analiza trasy zakończona', { revision: current, communesCount: result.length });
+      log.debug('Analiza trasy zakończona', { revision: current, communeCount: result.length });
       if (result.length !== matches.length || result.some((item, i) => item !== matches[i])) matches = result;
       render();
     } catch (error) {
@@ -177,7 +177,7 @@
   function start() {
     if (!app.state.map || watchedMap === app.state.map) return;
     stop();
-    sourceId = globalThis.ZaliczGminySites.getCurrentSite()?.routeSourceId;
+    sourceId = globalThis.ZaliczGmineSites.getCurrentSite()?.routeSourceId;
     if (!sourceId) return;
     log.debug('Uruchomienie obserwacji trasy', { sourceId });
     watchedMap = app.state.map;
@@ -188,4 +188,4 @@
   }
 
   app.modules.plannedRoute = { start, stop, scheduleRefresh, render, setVisible };
-})(window.ZaliczGminy);
+})(window.ZaliczGmine);

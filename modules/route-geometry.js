@@ -179,5 +179,5 @@
     }
   }
 
-  global.ZaliczGminyRouteGeometry = { calculate };
+  global.ZaliczGmineRouteGeometry = { calculate };
 })(globalThis);

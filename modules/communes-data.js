@@ -1,7 +1,7 @@
 (function(app) {
   'use strict';
 
-  const log = globalThis.ZaliczGminyLogger.create('communes-data');
+  const log = globalThis.ZaliczGmineLogger.create('communes-data');
 
   const polygonsByRequest = new Map();
   const pendingPolygonRequests = new Map();
@@ -10,38 +10,38 @@
 
   const api = globalThis.createZaliczGmineApi(fetchResource);
 
-  async function loadUserCommunesFromApi(userId) {
-    const data = await api.getUserCommunes(userId, 'pl');
+  async function loadVisitedCommunesFromApi(userId) {
+    const data = await api.getVisitedCommunes(userId, 'pl');
 
     const communeIds = new Set(data.items.map(item => String(item.id)));
     log.debug('Załadowano zaliczone gminy', { count: communeIds.size });
-    app.state.userCommunes = communeIds;
-    app.state.userCommunesSource = 'api';
+    app.state.visitedCommuneIds = communeIds;
+    app.state.visitedCommuneSource = 'api';
     app.state.userId = String(userId);
     app.state.username = data.user?.username || null;
-    setStorage({ communesCount: data.count });
+    setStorage({ visitedCommuneCount: data.count });
 
     // update only if name is stillthe same as selected account.
-    const storage = await getStorage(['zaliczGminyUserId']);
-    if (String(storage.zaliczGminyUserId) === String(userId) && data.user?.username) {
-      setStorage({ zaliczGminyUsername: data.user.username });
+    const storage = await getStorage(['zaliczGmineUserId']);
+    if (String(storage.zaliczGmineUserId) === String(userId) && data.user?.username) {
+      setStorage({ zaliczGmineUsername: data.user.username });
     }
     return communeIds;
   }
 
-  async function loadUserCommunes() {
-    const storage = await getStorage(['zaliczGminyUserId']);
-    return reloadUserCommunes(storage.zaliczGminyUserId);
+  async function loadVisitedCommunes() {
+    const storage = await getStorage(['zaliczGmineUserId']);
+    return reloadVisitedCommunes(storage.zaliczGmineUserId);
   }
 
-  async function reloadUserCommunes(userId) {
+  async function reloadVisitedCommunes(userId) {
     const normalizedId = userId ? String(userId).trim() : '';
     // only numeric user ID
     if (!/^\d+$/.test(normalizedId)) {
       throw new Error('Nie ustawiono poprawnego ID użytkownika ZaliczGmine.pl');
     }
 
-    return loadUserCommunesFromApi(normalizedId);
+    return loadVisitedCommunesFromApi(normalizedId);
   }
 
   function getApiZoomForMapZoom(mapZoom) {
@@ -220,7 +220,7 @@
 
     for (const item of items) {
       try {
-        const visited = app.state.userCommunes.has(String(item.i));
+        const visited = app.state.visitedCommuneIds.has(String(item.i));
         if (filterVisited !== null && visited !== filterVisited) continue;
 
         const coordinates = JSON.parse(item.c);
@@ -249,8 +249,8 @@
   }
 
   app.modules.communesData = {
-    loadUserCommunes,
-    reloadUserCommunes,
+    loadVisitedCommunes,
+    reloadVisitedCommunes,
     getApiZoomForMapZoom,
     getPolygonRequestForMap,
     fetchPolygons,
@@ -258,4 +258,4 @@
     activatePolygons,
     convertToGeoJSON
   };
-})(window.ZaliczGminy);
+})(window.ZaliczGmine);
