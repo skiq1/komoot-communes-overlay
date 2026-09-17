@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const log = globalThis.ZaliczGminyLogger.create('popup');
-  const { ACTION } = globalThis.ZaliczGminyMessageProtocol;
+  const log = globalThis.ZaliczGmineLogger.create('popup');
+  const { ACTION } = globalThis.ZaliczGmineMessageProtocol;
   const api = globalThis.createZaliczGmineApi();
-  const communesCountEl = document.getElementById('communesCount');
+  const visitedCommunesCountEl = document.getElementById('visitedCommunesCount');
   const toggleBtn = document.getElementById('toggleBtn');
   const selectedUserEl = document.getElementById('selectedUser');
   const userIdInput = document.getElementById('userIdInput');
@@ -35,13 +35,13 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function loadSelectedUser() {
-    chrome.storage.local.get(['zaliczGminyUserId', 'zaliczGminyUsername'], function(result) {
-      renderSelectedUser(result.zaliczGminyUserId, result.zaliczGminyUsername);
+    chrome.storage.local.get(['zaliczGmineUserId', 'zaliczGmineUsername'], function(result) {
+      renderSelectedUser(result.zaliczGmineUserId, result.zaliczGmineUsername);
     });
   }
 
   function handleStorageChange(changes, areaName) {
-    if (areaName === 'local' && (changes.zaliczGminyUserId || changes.zaliczGminyUsername)) {
+    if (areaName === 'local' && (changes.zaliczGmineUserId || changes.zaliczGmineUsername)) {
       loadSelectedUser();
     }
   }
@@ -50,27 +50,15 @@ document.addEventListener('DOMContentLoaded', function() {
   window.addEventListener('unload', () => chrome.storage.onChanged.removeListener(handleStorageChange));
 
   function loadGpxInfo() {
-    chrome.storage.local.get(['zaliczGminyGpx', 'zaliczGminyGpxList'], function(result) {
+    chrome.storage.local.get(['zaliczGmineGpxList'], function(result) {
       const tracks = normalizeStoredGpx(result);
-      if (!Array.isArray(result.zaliczGminyGpxList) && result.zaliczGminyGpx && tracks.length) {
-        setStoredGpxTracks(tracks);
-        return;
-      }
       renderGpxList(tracks);
     });
   }
 
   function normalizeStoredGpx(result) {
-    if (Array.isArray(result.zaliczGminyGpxList)) {
-      return result.zaliczGminyGpxList;
-    }
-
-    if (result.zaliczGminyGpx && result.zaliczGminyGpx.name) {
-      return [{
-        id: result.zaliczGminyGpx.id || createGpxId(),
-        name: result.zaliczGminyGpx.name,
-        text: result.zaliczGminyGpx.text
-      }];
+    if (Array.isArray(result.zaliczGmineGpxList)) {
+      return result.zaliczGmineGpxList;
     }
 
     return [];
@@ -81,17 +69,15 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function getStoredGpxTracks(callback) {
-    chrome.storage.local.get(['zaliczGminyGpx', 'zaliczGminyGpxList'], function(result) {
+    chrome.storage.local.get(['zaliczGmineGpxList'], function(result) {
       callback(normalizeStoredGpx(result));
     });
   }
 
   function setStoredGpxTracks(tracks, callback) {
-    chrome.storage.local.set({ zaliczGminyGpxList: tracks }, function() {
-      chrome.storage.local.remove(['zaliczGminyGpx'], function() {
-        renderGpxList(tracks);
-        if (callback) callback();
-      });
+    chrome.storage.local.set({ zaliczGmineGpxList: tracks }, function() {
+      renderGpxList(tracks);
+      if (callback) callback();
     });
   }
 
@@ -213,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   removeAllGpxBtn.addEventListener('click', function() {
-    chrome.storage.local.remove(['zaliczGminyGpx', 'zaliczGminyGpxList'], function() {
+    chrome.storage.local.remove(['zaliczGmineGpxList'], function() {
       gpxFileInput.value = '';
       gpxFileName.textContent = 'Brak pliku';
       renderGpxList([]);
@@ -275,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const userId = String(user.id);
     searchVersion++;
     userSearchResults.textContent = '';
-    chrome.storage.local.set({ zaliczGminyUserId: userId, zaliczGminyUsername: user.username }, function() {
+    chrome.storage.local.set({ zaliczGmineUserId: userId, zaliczGmineUsername: user.username }, function() {
       if (chrome.runtime.lastError) {
         showStatus('Nie udało się zapisać użytkownika', 'error');
         return;
@@ -288,8 +274,8 @@ document.addEventListener('DOMContentLoaded', function() {
         data: { userId }
       }, function(response) {
         if (response?.success) {
-          communesCountEl.textContent = response.communesCount;
-          showStatus(`Załadowano ${response.communesCount} gmin`, 'success');
+          visitedCommunesCountEl.textContent = response.visitedCommunesCount;
+          showStatus(`Załadowano ${response.visitedCommunesCount} gmin`, 'success');
         } else if (response?.error) {
           showStatus(response.error, 'error');
         } else {
@@ -326,8 +312,8 @@ document.addEventListener('DOMContentLoaded', function() {
         mapStatusText.textContent = 'Połączono z mapą';
         updateVisibilityButton(response.visible);
 
-        if (response.communesCount !== undefined) {
-          communesCountEl.textContent = response.communesCount;
+        if (response.visitedCommunesCount !== undefined) {
+          visitedCommunesCountEl.textContent = response.visitedCommunesCount;
         }
         if (Array.isArray(response.gpxTracks)) {
           getStoredGpxTracks(function(tracks) {
@@ -338,17 +324,17 @@ document.addEventListener('DOMContentLoaded', function() {
         mapStatusDot.classList.add('disconnected');
         mapStatusDot.classList.remove('connected');
         mapStatusText.textContent = 'Brak połączenia z mapą';
-        communesCountEl.textContent = '-';
+        visitedCommunesCountEl.textContent = '-';
 
-        // loadCommunesCountFromStorage();
+        // loadVisitedCommunesCountFromStorage();
       }
     });
   }
 
-  // function loadCommunesCountFromStorage() {
-  //   chrome.storage.local.get(['communesCount'], function(result) {
-  //     if (result.communesCount) {
-  //       communesCountEl.textContent = result.communesCount;
+  // function loadVisitedCommunesCountFromStorage() {
+  //   chrome.storage.local.get(['visitedCommunesCount'], function(result) {
+  //     if (result.visitedCommunesCount) {
+  //       visitedCommunesCountEl.textContent = result.visitedCommunesCount;
   //     }
   //   });
   // }

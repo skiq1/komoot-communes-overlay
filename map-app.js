@@ -1,10 +1,10 @@
 (function(app) {
   'use strict';
 
-  const log = globalThis.ZaliczGminyLogger.create('map-app');
+  const log = globalThis.ZaliczGmineLogger.create('map-app');
 
-  const { ACTION, MESSAGE } = globalThis.ZaliczGminyMessageProtocol;
-  const { loadUserCommunes, reloadUserCommunes, fetchPolygons,
+  const { ACTION, MESSAGE } = globalThis.ZaliczGmineMessageProtocol;
+  const { loadVisitedCommunes, reloadVisitedCommunes, fetchPolygons,
           activatePolygons, getPolygonRequestForMap } = app.modules.communesData;
   const { getTracksSummary, loadStoredGpx, removeGpx, renderGpx, setGpx } = app.modules.gpx;
   const { findMap } = app.modules.mapFinder;
@@ -33,14 +33,14 @@
 
     if (action === ACTION.RELOAD_COMMUNES) {
       try {
-        await reloadUserCommunes(data.userId);
+        await reloadVisitedCommunes(data.userId);
         refreshCommunesStyles();
 
         return {
           success: true,
-          communesCount: app.state.userCommunes.size,
+          visitedCommunesCount: app.state.visitedCommunesIds.size,
           userId: app.state.userId,
-          userCommunesSource: app.state.userCommunesSource
+          visitedCommunesSource: app.state.visitedCommunesSource
         };
       } catch (error) {
         return { success: false, error: error.message };
@@ -65,9 +65,9 @@
       return {
         connected: !!app.state.map,
         visible: app.state.communesVisible,
-        communesCount: app.state.userCommunes.size,
+        visitedCommunesCount: app.state.visitedCommunesIds.size,
         userId: app.state.userId,
-        userCommunesSource: app.state.userCommunesSource,
+        visitedCommunesSource: app.state.visitedCommunesSource,
         gpxTracks: getTracksSummary(),
         totalLoaded: app.state.polygons ? app.state.polygons.length : 0
       };
@@ -101,7 +101,7 @@
     let communesLoadError = null;
 
     try {
-      await loadUserCommunes();
+      await loadVisitedCommunes();
     } catch (error) {
       communesLoadError = error;
       log.error('Nie udalo się pobrac zaliczonych gmin:', error);
@@ -138,7 +138,7 @@
       if (communesLoadError) {
         showNotification(`Nie udało się pobrać zaliczonych gmin: ${communesLoadError.message}`);
       } else {
-        showNotification(`Załadowano gminy. Zaliczone: ${app.state.userCommunes.size}`);
+        showNotification(`Załadowano gminy. Zaliczone: ${app.state.visitedCommunesIds.size}`);
       }
 
       log.debug('Rozszerzenie gotowe');
@@ -148,9 +148,9 @@
     log.debug('Nie znaleziono mapy');
   }
 
-  window.zaliczGminy = app.state;
-  window.zaliczGminyToggle = () => toggleLayers(!app.state.communesVisible);
-  window.zaliczGminyRenderGpx = renderGpx;
+  window.zaliczGmine = app.state;
+  window.zaliczGmineToggle = () => toggleLayers(!app.state.communesVisible);
+  window.zaliczGmineRenderGpx = renderGpx;
 
   setTimeout(init, 0);
-})(window.ZaliczGminy);
+})(window.ZaliczGmine);

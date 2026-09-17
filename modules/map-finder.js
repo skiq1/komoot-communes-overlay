@@ -131,4 +131,4 @@
   }
 
   app.modules.mapFinder = { findMap };
-})(window.ZaliczGminy);
+})(window.ZaliczGmine);

@@ -3,20 +3,20 @@
 
   const config = {
     layerIds: {
-      routeFill: 'zalicz-gminy-route-fill',
-      routeOutline: 'zalicz-gminy-route-outline',
-      unvisitedFill: 'zalicz-gminy-communes',
-      unvisitedOutline: 'zalicz-gminy-communes-outline',
-      visitedFill: 'zalicz-gminy-visited',
-      visitedOutline: 'zalicz-gminy-visited-outline',
-      gpxCasing: 'zalicz-gminy-gpx-casing',
-      gpxLine: 'zalicz-gminy-gpx-line'
+      routeFill: 'zaliczgmine-route-fill',
+      routeOutline: 'zaliczgmine-route-outline',
+      unvisitedFill: 'zaliczgmine-communes',
+      unvisitedOutline: 'zaliczgmine-communes-outline',
+      visitedFill: 'zaliczgmine-visited',
+      visitedOutline: 'zaliczgmine-visited-outline',
+      gpxCasing: 'zaliczgmine-gpx-casing',
+      gpxLine: 'zaliczgmine-gpx-line'
     },
     sourceIds: {
-      route: 'zalicz-gminy-route-source',
-      unvisited: 'zalicz-gminy-unvisited-source',
-      visited: 'zalicz-gminy-visited-source',
-      gpx: 'zalicz-gminy-gpx-source'
+      route: 'zaliczgmine-route-source',
+      unvisited: 'zaliczgmine-unvisited-source',
+      visited: 'zaliczgmine-visited-source',
+      gpx: 'zaliczgmine-gpx-source'
     },
     zoom: {
       minApiZoom: 7,
@@ -69,15 +69,15 @@
     map: null,
     communesVisible: true,
     polygons: null,
-    routeCommuneIds: new Set(),
+    routeCommunesIds: new Set(),
     polygonsKey: null,
     userId: null,
     username: null,
-    userCommunesSource: 'none',
-    userCommunes: new Set()
+    visitedCommunesSource: 'none',
+    visitedCommunesIds: new Set()
   };
 
-  global.ZaliczGminy = {
+  global.ZaliczGmine = {
     config,
     state,
     modules: {}
