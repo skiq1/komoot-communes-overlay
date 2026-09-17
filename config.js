@@ -3,6 +3,8 @@
 
   const config = {
     layerIds: {
+      routeFill: 'zalicz-gminy-route-fill',
+      routeOutline: 'zalicz-gminy-route-outline',
       unvisitedFill: 'zalicz-gminy-communes',
       unvisitedOutline: 'zalicz-gminy-communes-outline',
       visitedFill: 'zalicz-gminy-visited',
@@ -11,6 +13,7 @@
       gpxLine: 'zalicz-gminy-gpx-line'
     },
     sourceIds: {
+      route: 'zalicz-gminy-route-source',
       unvisited: 'zalicz-gminy-unvisited-source',
       visited: 'zalicz-gminy-visited-source',
       gpx: 'zalicz-gminy-gpx-source'
@@ -24,7 +27,13 @@
       lowZoomOutlineMaxZoom: 8,
       debounceMs: 250
     },
+    routeAnalysis: {
+      apiZoom: 18,
+      boundsGridSize: 0.01
+    },
     styles: {
+      routeFill: { 'fill-color': '#228be6', 'fill-opacity': 0.22 },
+      routeOutline: { 'line-color': '#1971c2', 'line-width': 2, 'line-opacity': 0.85 },
       unvisitedFill: {
         'fill-color': '#ff6b6b',
         'fill-opacity': 0.15
@@ -60,6 +69,7 @@
     map: null,
     communesVisible: true,
     polygons: null,
+    routeCommuneIds: new Set(),
     polygonsKey: null,
     userId: null,
     username: null,

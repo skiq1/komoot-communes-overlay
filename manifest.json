@@ -65,6 +65,8 @@
         "modules/map-finder.js",
         "modules/communes-data.js",
         "modules/map-layers.js",
+        "modules/route-geometry.js",
+        "modules/planned-route.js",
         "modules/gpx.js",
         "map-app.js"
       ]

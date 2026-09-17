@@ -156,7 +156,8 @@
     }
 
     if (pendingPolygonRequests.has(request.cacheKey)) {
-      return pendingPolygonRequests.get(request.cacheKey);
+      // Share the same error handling as the original caller.
+      return pendingPolygonRequests.get(request.cacheKey).catch(() => null);
     }
 
     try {
@@ -174,6 +175,35 @@
     } finally {
       pendingPolygonRequests.delete(request.cacheKey);
     }
+  }
+
+  async function fetchRoutePolygons(lines) {
+    const { apiZoom, boundsGridSize } = app.config.routeAnalysis;
+    let north = -Infinity, east = -Infinity, south = Infinity, west = Infinity;
+    for (const line of lines) {
+      for (const [lng, lat] of line) {
+        north = Math.max(north, lat);
+        east = Math.max(east, lng);
+        south = Math.min(south, lat);
+        west = Math.min(west, lng);
+      }
+    }
+    if (!Number.isFinite(north)) return [];
+
+    // Round outwards with a small margin: never cut off a route endpoint.
+    // Nearby route edits share the existing request cache and in-flight fetch.
+    const lower = value => (Math.floor(value / boundsGridSize) - 1) * boundsGridSize;
+    const upper = value => (Math.ceil(value / boundsGridSize) + 1) * boundsGridSize;
+    const bounds = {
+      north: Math.min(90, upper(north)), east: Math.min(180, upper(east)),
+      south: Math.max(-90, lower(south)), west: Math.max(-180, lower(west))
+    };
+    const polygons = await fetchPolygons({
+      apiZoom, bounds,
+      cacheKey: `route-polygons:${apiZoom}:${bounds.north}:${bounds.east}:${bounds.south}:${bounds.west}`
+    });
+    if (!polygons) throw new Error('Nie udało się pobrać dokładnych granic gmin dla trasy');
+    return polygons;
   }
 
   function activatePolygons(request, polygons) {
@@ -220,6 +250,7 @@
     getApiZoomForMapZoom,
     getPolygonRequestForMap,
     fetchPolygons,
+    fetchRoutePolygons,
     activatePolygons,
     convertToGeoJSON
   };
