@@ -7,21 +7,6 @@
   const { getStorage } = app.modules.extensionBridge;
   let tracks = [];
 
-  function getNodePoints(nodes) {
-    const points = [];
-
-    for (const node of nodes) {
-      const lat = Number(node.getAttribute('lat'));
-      const lon = Number(node.getAttribute('lon'));
-
-      if (Number.isFinite(lat) && Number.isFinite(lon)) {
-        points.push([lon, lat]);
-      }
-    }
-
-    return points;
-  }
-
   function parseGpx(gpxText) {
     const doc = new DOMParser().parseFromString(gpxText, 'application/xml');
 
@@ -29,29 +14,12 @@
       throw new Error('Nieprawidłowy plik GPX');
     }
 
-    const features = [];
-
-    for (const segment of doc.querySelectorAll('trkseg')) {
-      const coordinates = getNodePoints(segment.querySelectorAll('trkpt'));
-      if (coordinates.length >= 2) {
-        features.push({
-          type: 'Feature',
-          properties: {},
-          geometry: { type: 'LineString', coordinates }
-        });
-      }
-    }
-
-    for (const route of doc.querySelectorAll('rte')) {
-      const coordinates = getNodePoints(route.querySelectorAll('rtept'));
-      if (coordinates.length >= 2) {
-        features.push({
-          type: 'Feature',
-          properties: {},
-          geometry: { type: 'LineString', coordinates }
-        });
-      }
-    }
+    // mapbox/togeojson (BSD-2-Clause); see lib header and THIRD_PARTY_LICENSES.txt.
+    const geojson = globalThis.toGeoJSON.gpx(doc);
+    // Waypoints are not routes. Preserve MultiLineString segment boundaries.
+    const features = geojson.features.filter(feature =>
+      feature.geometry?.type === 'LineString' || feature.geometry?.type === 'MultiLineString'
+    );
 
     if (features.length === 0) {
       throw new Error('GPX nie zawiera trasy ani śladu');
@@ -147,7 +115,10 @@
     }
 
     const geojson = parseGpx(gpxText);
-    log.debug('Wczytano GPX', { segmentsCount: geojson.features.length });
+    const segmentsCount = geojson.features.reduce((count, feature) => count + (
+      feature.geometry.type === 'MultiLineString' ? feature.geometry.coordinates.length : 1
+    ), 0);
+    log.debug('Wczytano GPX', { segmentsCount });
     const track = {
       id: id || Math.random().toString(36).slice(2),
       name: name || 'track.gpx',
@@ -167,7 +138,7 @@
     return {
       id: track.id,
       name: track.name,
-      tracksCount: geojson.features.length
+      tracksCount: segmentsCount
     };
   }
 
