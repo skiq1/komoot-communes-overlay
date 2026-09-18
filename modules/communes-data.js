@@ -223,10 +223,8 @@
         const visited = app.state.visitedCommunesIds.has(String(item.i));
         if (filterVisited !== null && visited !== filterVisited) continue;
 
-        const coordinates = JSON.parse(item.c);
-        const convertedCoordinates = coordinates.map(ring =>
-          ring.map(coord => [coord[1], coord[0]])
-        );
+        const geometry = globalThis.ZaliczGmineCommunesGeometry.toGeoJSON(item);
+        if (!geometry) throw new Error('Nieprawidłowa geometria gminy');
 
         features.push({
           type: 'Feature',
@@ -235,10 +233,7 @@
             name: item.n,
             visited
           },
-          geometry: {
-            type: 'Polygon',
-            coordinates: convertedCoordinates
-          }
+          geometry
         });
       } catch (e) {
         log.warn(`pominięto błędny polygon gminy ${item.i}`);

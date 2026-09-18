@@ -6,7 +6,6 @@
   'use strict';
 
   const EPSILON = 1e-12;
-  const prepared = new WeakMap();
   const overlaps = (a, b) => a[0] <= b[2] + EPSILON && a[2] + EPSILON >= b[0] &&
     a[1] <= b[3] + EPSILON && a[3] + EPSILON >= b[1];
   const bounds = (a, b) => [Math.min(a[0], b[0]), Math.min(a[1], b[1]),
@@ -51,33 +50,6 @@
     return level[0] || null;
   }
 
-  function* prepare(item) {
-    if (prepared.has(item)) return prepared.get(item);
-    let rings;
-    try {
-      rings = JSON.parse(item.c);
-      if (!Array.isArray(rings) || !rings.length) return null;
-      const box = [Infinity, Infinity, -Infinity, -Infinity];
-      for (const ring of rings) {
-        if (!Array.isArray(ring) || ring.length < 3) return null;
-        for (let i = 0; i < ring.length; i++) {
-          const p = ring[i];
-          if (!Array.isArray(p) || !Number.isFinite(p[0]) || !Number.isFinite(p[1])) return null;
-          ring[i] = [p[1], p[0]];
-          box[0] = Math.min(box[0], p[1]); box[1] = Math.min(box[1], p[0]);
-          box[2] = Math.max(box[2], p[1]); box[3] = Math.max(box[3], p[0]);
-          yield;
-        }
-      }
-      const result = { rings, box, tree: null };
-      prepared.set(item, result);
-      return result;
-    } catch {
-      prepared.set(item, null);
-      return null;
-    }
-  }
-
   // Turf's inRing, with cooperative iteration.
   function* inRing(pt, ring, ignoreBoundary = false) {
     let isInside = false;
@@ -98,12 +70,19 @@
 
   // Turf's Polygon containment: include the outer boundary, exclude hole
   // interiors only, so touching a hole boundary still counts as a match.
-  function* contains(point, rings) {
+  function* containsPolygon(point, rings) {
     if (!(yield* inRing(point, rings[0]))) return false;
     for (let k = 1; k < rings.length; k++) {
       if (yield* inRing(point, rings[k], true)) return false;
     }
     return true;
+  }
+
+  function* contains(point, polygons) {
+    for (const rings of polygons) {
+      if (yield* containsPolygon(point, rings)) return true;
+    }
+    return false;
   }
 
   function* treesIntersect(route, polygon) {
@@ -134,11 +113,11 @@
     if (!route) return matches;
     for (const item of polygons) {
       yield;
-      const polygon = yield* prepare(item);
+      const polygon = yield* global.ZaliczGmineCommunesGeometry.prepare(item);
       if (!polygon || !overlaps(route.box, polygon.box)) continue;
       let hit = false;
       for (const line of lines) {
-        if (overlaps(bounds(line[0], line[0]), polygon.box) && (yield* contains(line[0], polygon.rings))) {
+        if (overlaps(bounds(line[0], line[0]), polygon.box) && (yield* contains(line[0], polygon.polygons))) {
           hit = true;
           break;
         }

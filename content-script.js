@@ -12,10 +12,12 @@
     'modules/extension-bridge.js',
     'modules/zaliczgmine-api.js',
     'modules/map-finder.js',
+    'modules/communes-geometry.js',
     'modules/communes-data.js',
     'modules/map-layers.js',
     'modules/route-geometry.js',
     'modules/planned-route.js',
+    'lib/togeojson.js',
     'modules/gpx.js',
     'map-app.js'
   ];
