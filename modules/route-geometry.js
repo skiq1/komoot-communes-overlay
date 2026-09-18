@@ -113,7 +113,7 @@
     if (!route) return matches;
     for (const item of polygons) {
       yield;
-      const polygon = yield* global.ZaliczGmineCommunesGeometry.prepare(item);
+      const polygon = global.ZaliczGmineCommunesGeometry.prepare(item);
       if (!polygon || !overlaps(route.box, polygon.box)) continue;
       let hit = false;
       for (const line of lines) {
@@ -143,7 +143,7 @@
     return matches;
   }
 
-  // Work is interruptible even inside a complex polygon, not only between communes.
+  // Route checks yield between steps; commune preparation is synchronous.
   async function calculate(lines, polygons, cancelled = () => false) {
     const job = findMatches(lines, polygons);
     let deadline = performance.now() + 6;
